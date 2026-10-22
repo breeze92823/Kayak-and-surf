@@ -255,6 +255,25 @@ export function showMenu() {
   }
 }
 
+// The Bloxity sign-in (after Paper-plane's login.js). Must run synchronously inside the click
+// handler or browsers block the standalone popup. showAuthPopup() picks the in-game modal
+// (embedded) or the bloxity.io/auth popup (standalone); the flow ends by firing onUserChanged,
+// so the promise is ignored. No SDK auth: open the portal instead.
+export function showLogin() {
+  const auth = sdk()?.auth
+  for (const name of ['showAuthPopup', 'showAuthModal', 'showAuthWindow']) {
+    if (typeof auth?.[name] !== 'function') continue
+    try {
+      const result = auth[name]()
+      if (result && typeof result.catch === 'function') result.catch(() => {})
+      return
+    } catch (err) {
+      console.warn(`[bloxity] auth.${name} failed`, err)
+    }
+  }
+  window.open('https://bloxity.io', '_blank', 'noopener')
+}
+
 export function requestFullscreen(on) {
   try {
     const SDK = sdk()

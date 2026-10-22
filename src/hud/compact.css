@@ -1,0 +1,68 @@
+/* Phones, tablets and small windows (html.compact, device.js; html.touch adds touch.js's controls).
+   The HUD em grows (the layout is drawn for an 88x42em landscape phone instead of the desktop's
+   120x62em) and is re-laid around the touch controls: menu / fullscreen top left, the floating
+   stick bottom left, JUMP / EMOTE bottom right. Each centre window gets its own em, sized so the
+   whole window (panel, tabs, bottom bar) fits the screen under the counters. Every rule starts
+   with html.compact so it wins over the window stylesheets whatever their load order. */
+
+/* --hu: the compact HUD em. --win-*: the box the windows fit in, under the counters, clear of
+   the notches. All in px (--W / --H come from device.js), so they resolve the same anywhere. */
+html.compact {
+  --hu: clamp(5px, min(calc(var(--W, 100vw) / 88), calc(var(--H, 100vh) / 42)), 22px);
+  --win-top: calc(var(--hu) * 5.8 + env(safe-area-inset-top));
+  --win-h: calc(var(--H, 100vh) - var(--win-top) - 8px - env(safe-area-inset-bottom));
+  --win-w: calc(var(--W, 100vw) - 16px - env(safe-area-inset-left) - env(safe-area-inset-right));
+}
+html.compact .hud { font-size: var(--hu); }
+
+/* --- HUD ----------------------------------------------------------------------------------- */
+/* counters and the round buttons hug the top edge */
+html.compact .hud-counter { top: calc(0.6em + env(safe-area-inset-top)); }
+html.compact .hud-tr { top: calc(0.6em + env(safe-area-inset-top)); right: calc(0.8em + env(safe-area-inset-right)); }
+
+/* distance bar: shorter, under the touch menu buttons, clear of the timer below it */
+html.compact .hud-dist { left: calc(3.4em + env(safe-area-inset-left)); top: 10.8em; height: 21em; }
+
+/* right column: smaller tiles, the offer card just under the round buttons, the grid ending
+   above the JUMP button (positions in the column's own 0.8em) */
+html.compact .hud-right { font-size: 0.8em; right: env(safe-area-inset-right); }
+html.compact .hud-offer { top: 6.6em; }
+html.compact .hud-grid { top: 15.9em; }
+
+/* ride mode: the bottom row narrower so it clears the stick and JUMP / EMOTE; "You earned:"
+   right of the raft, short of the tiles; the lane timer under the distance bar */
+html.compact .hud-ride { font-size: 0.78em; bottom: env(safe-area-inset-bottom); }
+html.compact .hud-earned { font-size: 0.72em; left: calc(50% + 12.5em); top: 16.7em; }
+html.compact .hud-timer { left: calc(1.1em + env(safe-area-inset-left)); top: 33em; bottom: auto; }
+
+/* --- centre windows: fitted into the --win box --------------------------------------------
+   Each one: font-size = the largest em at which its extent (W x H em, measured off its css)
+   fits; anchored windows (width 0 at left 50%) are dropped so that extent is centred in the
+   box, the translate(-50%, -50%) ones are centred on it. */
+html.compact .coach-win { font-size: min(calc(var(--win-w) / 74.5), calc(var(--win-h) / 46.6), 22px); top: calc(var(--win-top) + var(--win-h) / 2); }
+/* the shop's tabs stand out 9.8em left of the panel: shift right by half of that */
+html.compact .shop-win { font-size: min(calc(var(--win-w) / 84.2), calc(var(--win-h) / 46.6), 22px); top: calc(var(--win-top) + var(--win-h) / 2); transform: translate(calc(-50% + 4.9em), -50%); }
+/* the 120x62em spin stage: its pieces span x 39.4-97.8em, y 5-58em */
+html.compact .spin-win { font-size: min(calc(var(--win-w) / 58.4), calc(var(--win-h) / 53), 22px); top: calc(var(--win-top) + var(--win-h) / 2); transform: translate(calc(-50% - 8.6em), calc(-50% - 0.5em)); }
+html.compact .pets-win { font-size: min(calc(var(--win-w) / 68.7), calc(var(--win-h) / 44.5), 22px); top: calc(var(--win-top) + (var(--win-h) - 44.5em) / 2); }
+html.compact .eggs-win { font-size: min(calc(var(--win-w) / 58), calc(var(--win-h) / 33.7), 22px); top: calc(var(--win-top) + (var(--win-h) - 33.7em) / 2); }
+html.compact .mut-win { font-size: min(calc(var(--win-w) / 58), calc(var(--win-h) / 33), 22px); top: calc(var(--win-top) + (var(--win-h) - 33em) / 2); }
+html.compact .daily-win { font-size: min(calc(var(--win-w) / 58), calc(var(--win-h) / 26), 22px); top: calc(var(--win-top) + (var(--win-h) - 26em) / 2); }
+/* the rarity buttons stand out on the left: x -35.6 to 36.7em around the anchor */
+html.compact .pidx-win { font-size: min(calc(var(--win-w) / 73.4), calc(var(--win-h) / 48.9), 22px); top: calc(var(--win-top) + (var(--win-h) - 48.9em) / 2); }
+html.compact .trade-list { font-size: min(calc(var(--win-w) / 46.6), calc(var(--win-h) / 42.2), 22px); top: calc(var(--win-top) + (var(--win-h) - 42.2em) / 2); }
+/* the box titles straddle the panel's top edge, 2.25em above it */
+html.compact .trade-win { font-size: min(calc(var(--win-w) / 75.9), calc(var(--win-h) / 44.45), 22px); top: calc(var(--win-top) + (var(--win-h) - 44.45em) / 2 + 2.25em); }
+/* toasts that sat just under a desktop panel go over it instead */
+html.compact .daily-toast { top: 30%; }
+
+/* --- touch: no keyboard, no hover --------------------------------------------------------- */
+/* the E key on the proximity prompts becomes a tapping hand (the prompt is the button) */
+html.touch .coach-key { position: relative; color: transparent; }
+html.touch .coach-key::after { content: '👆'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 0.95em; }
+/* key hints on the egg window's buttons */
+html.touch .eggs-btn kbd { display: none; }
+html.touch .eggs-hatch-hint { visibility: hidden; }
+html.touch .eggs-hatch-hint::after { content: 'Tap to skip'; visibility: visible; position: absolute; left: 50%; top: 0; transform: translateX(-50%); white-space: nowrap; }
+/* fingertip-sized hit areas round the small window close buttons */
+html.touch .hud :is(.coach-x, .pets-x, .eggs-x, .pidx-x, .spin-x)::before { content: ''; position: absolute; inset: -0.6em; }

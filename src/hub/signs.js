@@ -25,7 +25,16 @@ function painted(w, h, paint) {
   }
   draw()
   document.fonts?.load(`700 64px Fredoka`).then(draw, () => {})
+  tex.userData.repaint = draw // for faces whose content changes (leaderboards)
   return tex
+}
+
+// The longest prefix of `text` (plus "...") that fits `max` px in the current font.
+function fit(g, text, max) {
+  if (g.measureText(text).width <= max) return text
+  let s = text
+  while (s.length > 1 && g.measureText(`${s}...`).width > max) s = s.slice(0, -1)
+  return `${s}...`
 }
 
 function outlined(g, text, x, y, px, fill, stroke = '#1a0c0c', width = 0.16) {
@@ -308,10 +317,14 @@ export const petBandTexture = () =>
   })
 
 // Leaderboard face: red header with "TOP 100" over the big `title` in `color`, then ten numbered
-// rows of placeholder names and scores (live rows arrive once the game has a server), and the
-// viewer's own row at the bottom.
-export const leaderboardTexture = (title, color) =>
-  painted(512, 720, (g, w, h) => {
+// rows and the viewer's own row at the bottom. `board.set(rows, you)` repaints it: rows
+// [{ name, value }] already formatted (the server's `leaderboard` message, via main.js; empty
+// rows show a dash while solo or before the first one arrives), `you` { rank, value } (rank 0 =
+// not in the top ten).
+export function leaderboardTexture(title, color) {
+  let rows = []
+  let you = { rank: 0, value: '0' }
+  const tex = painted(512, 720, (g, w, h) => {
     g.fillStyle = '#b3121f'
     g.fillRect(0, 0, w, h)
     outlined(g, 'TOP 100', w / 2, 44, 52, '#ffffff', '#2a0505', 0.16)
@@ -322,21 +335,36 @@ export const leaderboardTexture = (title, color) =>
     g.textBaseline = 'middle'
     for (let i = 0; i < 10; i++) {
       const y = 196 + i * 48
+      const row = rows[i]
       g.fillStyle = i % 2 ? '#1a1d22' : '#22262d'
       g.fillRect(28, y - 20, w - 56, 40)
-      g.textAlign = 'left'
-      g.fillStyle = i < 3 ? ['#ffd21a', '#d9e2ea', '#e0904a'][i] : '#ffffff'
-      g.fillText(`${i + 1}  @Player${(i * 37 + 11) % 97}`, 40, y)
       g.textAlign = 'right'
       g.fillStyle = color
-      g.fillText(`${(10 - i) * 1250}`, w - 40, y)
+      const value = row ? row.value : '-'
+      g.fillText(value, w - 40, y)
+      g.textAlign = 'left'
+      g.fillStyle = i < 3 ? ['#ffd21a', '#d9e2ea', '#e0904a'][i] : '#ffffff'
+      g.fillText(`${i + 1}  ${row ? fit(g, row.name, w - 120 - g.measureText(value).width) : ''}`, 40, y)
     }
     g.textAlign = 'left'
     g.fillStyle = color
-    g.fillText('You', 40, h - 36)
+    g.fillText(you.rank ? `#${you.rank}  You` : 'You', 40, h - 36)
     g.textAlign = 'right'
-    g.fillText('0', w - 40, h - 36)
+    g.fillText(you.value, w - 40, h - 36)
   })
+  let key = ''
+  return {
+    tex,
+    set(nextRows, nextYou) {
+      const next = JSON.stringify([nextRows, nextYou])
+      if (next === key) return // unchanged: skip the repaint and upload
+      key = next
+      rows = nextRows
+      you = nextYou
+      tex.userData.repaint()
+    },
+  }
+}
 
 // Portal swirl: purple-to-blue spiral arms on a deep violet disc.
 export const portalTexture = () =>

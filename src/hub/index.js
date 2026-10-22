@@ -26,6 +26,7 @@ export function createHub() {
     group,
     coach: island.coach, // the Coach's rig (coach.js animates it)
     spin: island.spin, // the prize wheel (spinWheel.js turns it)
+    boards: island.boards, // the TOP 100 leaderboards by stat (main.js fills them from net.js)
     vip: slide.vip, // the VIP lane's rope gate (vipLane.js unlocks it)
     update(dt) {
       terrain.update(dt)

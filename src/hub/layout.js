@@ -4,7 +4,7 @@
 // the island's north edge, where the three-lane water slide climbs out of the lake.
 //   West rim: yellow item band (NW), shop stall, purple pet band with four pedestals (SW).
 //   On the deck: SHOP pad, egg, Mutate pad (with the machine behind it), Coach pad, SPIN pad.
-//   East rim: spin wheel, Lunar New Year gate, magenta pad (Golden Dragon Kayak), three TOP 100 leaderboards (SE).
+//   East rim: spin wheel, Lunar New Year gate, magenta pad (Golden Dragon Kayak), three TOP 100 leaderboards (SE): COIN / WINS / PLAYTIME.
 //   Water: portal isle (S), tree islet (NW), long bridge (E). The Golden Dragon Kayak stands on the magenta pad.
 //
 // Plan positions are measured off the user's top-down reference shot (1920 x 987, the spawn at
@@ -218,9 +218,10 @@ export const LANTERNS = { ...plan(1320, 470), size: grow(8) }
 export const MAGENTA_PAD = { ...plan(1325, 640), r: planLen(46) }
 export const LEADERBOARDS = [
   // Angles from the first-person south view (the top-down shot shows only their leaning tops).
-  { a: 45, title: 'COIN', color: '#ffd21a', icon: 'coin' },
-  { a: 62, title: 'ROBUX', color: '#3dff6a', icon: 'robux' },
-  { a: 79.5, title: 'PLAYTIME', color: '#5fd7ff', icon: 'clock' },
+  // `stat`: the backend `leaderboard` board it shows (wins are the trophies counter).
+  { a: 45, title: 'COIN', color: '#ffd21a', icon: 'coin', stat: 'coins' },
+  { a: 62, title: 'WINS', color: '#3dff6a', icon: 'trophy', stat: 'trophies' },
+  { a: 79.5, title: 'PLAYTIME', color: '#5fd7ff', icon: 'clock', stat: 'playtime' },
 ].map((b) => ({ ...b, r: ISLAND.r + 0.2, w: grow(6.6), h: grow(9.6), tilt: 0.22 }))
 // Rests keel down on the magenta pad, side-on to the deck with the dragon's head rearing up at the
 // bow (the first-person east shot); `height` is the top of its horns, which makes it about as long

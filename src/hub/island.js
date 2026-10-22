@@ -564,18 +564,24 @@ function lunarCountdown() {
   return `Starts in ${d ? `${d}d ` : ''}${hms}`
 }
 
-// Big icon crowning a leaderboard: gold coin, green Robux hexagon or cyan alarm clock.
+// Big icon crowning a leaderboard: gold coin, gold trophy cup (wins) or cyan alarm clock.
 function boardIcon(kind) {
   const g = new Group()
   if (kind === 'coin') {
     g.add(mesh(new CylinderGeometry(2.4, 2.4, 0.5, 8), neon('#ffc21a', 0.35)))
     g.add(mesh(new CylinderGeometry(1.7, 1.7, 0.56, 8), neon('#ffe9a0', 0.35)))
     g.rotation.x = Math.PI / 2 - 0.45
-  } else if (kind === 'robux') {
-    const hex = mesh(new TorusGeometry(1.8, 0.65, 8, 6), neon('#3dff6a', 0.4))
-    hex.rotation.z = Math.PI / 6
-    g.add(hex)
-    g.add(mesh(new BoxGeometry(1.2, 0.9, 0.4), neon('#1f9a3a', 0.3)))
+  } else if (kind === 'trophy') {
+    const gold = neon('#ffc21a', 0.35)
+    g.add(mesh(new CylinderGeometry(1.9, 0.9, 2.2, 24), gold, 0, 0.9, 0)) // cup
+    g.add(mesh(new CylinderGeometry(1.95, 1.95, 0.25, 24), neon('#ffe9a0', 0.4), 0, 2.05, 0)) // lip
+    for (const side of [-1, 1]) {
+      const handle = mesh(new TorusGeometry(0.65, 0.2, 8, 20, Math.PI), gold, side * 1.55, 1.1, 0)
+      handle.rotation.z = side > 0 ? -Math.PI / 2 : Math.PI / 2
+      g.add(handle)
+    }
+    g.add(mesh(new CylinderGeometry(0.3, 0.45, 1, 12), gold, 0, -0.7, 0)) // stem
+    g.add(mesh(new BoxGeometry(2.2, 0.5, 1.2), neon('#3dff6a', 0.35), 0, -1.4, 0)) // base
   } else {
     const face = mesh(new CylinderGeometry(1.6, 1.6, 0.4, 32), plastic('#ffffff'))
     face.rotation.x = Math.PI / 2
@@ -597,8 +603,10 @@ function boardIcon(kind) {
 }
 
 // Three TOP 100 boards on the south-east rim, leaning back and facing in, each crowned by its icon.
+// Returns { [stat]: board } (signs.js leaderboardTexture: `set(rows, you)` repaints its face).
 function buildLeaderboards(group) {
   const frame = plastic(HUB_COLORS.wallFrame)
+  const boards = {}
   for (const b of LEADERBOARDS) {
     const [x, z] = onIsland(b.r, b.a)
     const g = new Group()
@@ -606,7 +614,9 @@ function buildLeaderboards(group) {
     g.rotation.y = faceCentre(x, z)
     const board = new Group()
     board.rotation.x = -b.tilt // lean back, away from the centre
-    const tex = leaderboardTexture(b.title, b.color)
+    const lb = leaderboardTexture(b.title, b.color)
+    boards[b.stat] = lb
+    const tex = lb.tex
     const face = new MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#ffffff', emissiveIntensity: 0.35, ...MATERIAL_PBR.PLASTIC })
     const screen = new Mesh(new BoxGeometry(b.w, b.h, 0.3), [frame, frame, frame, frame, face, frame])
     screen.position.y = b.h / 2 + 0.3
@@ -626,6 +636,7 @@ function buildLeaderboards(group) {
     const uz = -Math.sin(g.rotation.y)
     addSegmentCollider(x - ux * half, z - uz * half, x + ux * half, z + uz * half, 0, b.h, 0.45)
   }
+  return boards
 }
 
 // Golden Dragon Kayak (dragonKayak.js) resting keel down on the magenta pad like the reference:
@@ -685,13 +696,14 @@ export function createIslandFixtures() {
   const spin = buildSpin(group)
   buildLanterns(group, animated)
   pad(group, MAGENTA_PAD.x, MAGENTA_PAD.z, MAGENTA_PAD.r, '#ff2bd6')
-  buildLeaderboards(group)
+  const boards = buildLeaderboards(group)
   buildDragonKayak(group, animated)
   let t = 0
   return {
     group,
     coach, // the Coach's rig, animated by coach.js
     spin, // the prize wheel, turned by spinWheel.js
+    boards, // the TOP 100 leaderboards by stat, filled by main.js from net.js
     update(dt) {
       t += dt
       updateParticles(dt)

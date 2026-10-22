@@ -1,0 +1,7 @@
+/* "Log in with Bloxity" (hud/login.js): Paper-plane's yellow button, in HUD em so it scales with
+   the rest; as tall as the round Daily / Spin buttons beside it. */
+.hud .hud-login { align-self: center; height: 3em; padding: 0 1.1em; box-sizing: border-box; border: 0.17em solid #0b1d3f; border-radius: 0.65em;
+  background: linear-gradient(#ffe36a, #ffc21c 55%, #f5a300); color: #fff; font-size: 1.15em;
+  box-shadow: inset 0 0.18em 0 rgba(255, 255, 255, 0.5), 0 0.22em 0 #0b1d3f; touch-action: manipulation; }
+.hud .hud-login[hidden],
+.hud:is(.coach-open, .index-open, .pets-open, .spin-open, .shop-open, .eggs-open, .eggs-hatching, .mut-open, .trade-open, .daily-open) .hud-login { display: none; }

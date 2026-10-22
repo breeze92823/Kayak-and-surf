@@ -1,8 +1,9 @@
 import { Clock, Group, PCFSoftShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, WebGLRenderer } from 'three'
-import { CAMERA, LANE_REWARD, RIDE_PERKS, SPAWN, SPAWN_FACING, VIP_LANE } from './config.js'
+import { CAMERA, LANE_REWARD, LIGHT, PHYSICS, RIDE_PERKS, SPAWN, SPAWN_FACING, VIP_LANE } from './config.js'
 import * as bloxity from './bloxity.js'
 import { inputState, install as installInput } from './input.js'
 import { installViewport, isTouch } from './device.js'
+import { createTouchControls } from './touch.js'
 import { player, resetPlayer, step as stepPlayer } from './player.js'
 import { syncYawToPlayer, update as updateCamera } from './camera.js'
 import { createFog, createLights, createSky } from './world.js'
@@ -14,7 +15,7 @@ import { disposeAnimator, makeAnimator } from './avatar/animator.js'
 import { createLoading, markLoaded } from './loading.js'
 import { createRaft } from './raft.js'
 import { createRipples } from './ripples.js'
-import { createHud } from './hud/index.js'
+import { createHud, formatNum } from './hud/index.js'
 import { createSpray } from './spray.js'
 import { createSpeedLines } from './speedlines.js'
 import { createSurf } from './surf.js'
@@ -32,6 +33,7 @@ import { createMutate } from './mutate.js'
 import { createDaily } from './daily.js'
 import { createPetFollowers } from './petFollowers.js'
 import { createTradeWindow } from './hud/trade.js'
+import { createLoginButton } from './hud/login.js'
 import { initNet, net, onNet, roster, sendPose } from './net.js'
 import { kayaks } from './kayaks.js'
 import { trails } from './trails.js'
@@ -41,6 +43,8 @@ import { boosts } from './boosts.js'
 import { createRidePerks } from './ridePerks.js'
 import { createEndTrophy } from './endTrophy.js'
 import { createVipLane } from './vipLane.js'
+import { createTeleport } from './teleport.js'
+import { createRemotePlayers } from './remotePlayers.js'
 
 installViewport()
 
@@ -69,6 +73,8 @@ document.body.appendChild(renderer.domElement)
 installInput(bloxity.showMenu, renderer.domElement)
 const hud = createHud() // DOM overlay (hud/); counters and the distance bar update through hud.set
 if (import.meta.env.DEV) hud.set(RIDE_PERKS.devStart) // enough wins and coins to try Double Speed and AFK
+createLoginButton(hud) // "Log in with Bloxity" in the top-right row while signed out
+createTouchControls({ hud, showMenu: bloxity.showMenu }) // phones/tablets: stick, drag-look, pinch, JUMP / EMOTE, menu
 const BLUE_LANE = LANES.find((l) => l.id === 'blue') // entering it puts the HUD in ride mode
 const VIP_RIDE = LANES.find((l) => l.id === 'vip') // so does this one once bought (vipLane.js), at x2
 
@@ -86,7 +92,7 @@ window.addEventListener('resize', resize)
 resize()
 
 const sky = createSky()
-const lights = createLights()
+const lights = createLights(isTouch ? LIGHT.touchShadowMapSize : LIGHT.shadowMapSize)
 const hub = createHub()
 scene.add(sky, hub.group, lights.hemi, lights.sun, lights.sun.target)
 
@@ -126,6 +132,9 @@ const boatTrail = createBoatTrail() // the equipped Trails Shop trail streaming 
 scene.add(boatTrail.mesh)
 const endTrophy = createEndTrophy({ hud, scene }) // the one-time wins trophy at the top of the slide
 const vipLane = createVipLane({ hud, camera, scene, gate: hub.vip }) // E by the VIP rope or pad: buy VIP lane access for wins
+const teleport = createTeleport({ hud, camera }) // by the Teleport portal: "Need 100 Wins"
+const remotes = createRemotePlayers({ ripples, camera, onAvatar: () => (cold = true) }) // everyone else in the room, on their boats
+scene.add(remotes.group)
 let hudClock = 0
 let laneBest = 0 // highest metres reached this ride-lane visit, paid out as "You earned:"
 let lastRideLane = null // the lane that visit is in (blue or VIP)
@@ -145,6 +154,35 @@ function updateRacers() {
 }
 onNet('roster', updateRacers)
 onNet('connection', updateRacers)
+
+// The hub's TOP 100 boards (COIN / WINS / PLAYTIME): the server's `leaderboard` rows (net.js;
+// dashes while solo) and the player's own row ("#n You" when in the top ten). Wins are trophies.
+// Repainted on each broadcast, at most once a second while the counters change, and every 30 s
+// for the playtime; unchanged faces are skipped (signs.js).
+const playtimeText = (s) => (s < 3600 ? `${Math.floor(s / 60)}m` : `${formatNum(Math.floor(s / 3600))}h ${Math.floor((s % 3600) / 60)}m`)
+function paintBoards() {
+  const own = { coins: hud.get('coins'), trophies: hud.get('trophies'), playtime: net.playtime }
+  for (const [stat, board] of Object.entries(hub.boards)) {
+    const fmt = stat === 'playtime' ? playtimeText : formatNum
+    const rows = net.leaderboard?.[stat] ?? []
+    const rank = rows.findIndex((r) => r.id === net.sessionId) + 1
+    board.set(
+      rows.map((r) => ({ name: r.name, value: fmt(r.value) })),
+      { rank, value: fmt(own[stat] ?? 0) },
+    )
+  }
+}
+let boardsTimer = 0
+hud.onSet((next) => {
+  if (!('coins' in next || 'trophies' in next) || boardsTimer) return
+  boardsTimer = setTimeout(() => {
+    boardsTimer = 0
+    paintBoards()
+  }, 1000)
+})
+onNet('leaderboard', paintBoards)
+setInterval(paintBoards, 30_000)
+paintBoards()
 
 let avatar = null
 let animator = null
@@ -231,7 +269,17 @@ function frame() {
   const pose = surf.active ? surf.pose : climb.pose // climb.pose is flat off the slide
   playerGroup.position.set(player.position.x, player.position.y + lift + pose.lift, player.position.z)
   playerGroup.rotation.set(pose.pitch, player.facing + (pose.yaw ?? 0), pose.roll)
-  sendPose({ x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.facing }) // others' distance bars
+  // Others' distance bars and their copy of this raft (remotePlayers.js).
+  sendPose({
+    x: player.position.x,
+    y: player.position.y,
+    z: player.position.z,
+    yaw: player.facing + (pose.yaw ?? 0),
+    pitch: pose.pitch,
+    roll: pose.roll,
+    pose: surf.active ? 'surf' : climb.climbing ? 'climb' : '',
+    speed01: surf.active ? surf.speed01 : Math.min(1, speed / PHYSICS.moveSpeed),
+  })
   raft.splash(dt, { speed, stroke: animator?.stroke })
   boatTrail.update(dt, raft.group) // the player group is placed for this frame
   followers.update(dt, { x: playerGroup.position.x, y: playerGroup.position.y, z: playerGroup.position.z, facing: player.facing })
@@ -246,6 +294,7 @@ function frame() {
     hud.set({ distance: Math.round(surf.best) })
   }
 
+  remotes.update(dt)
   hub.update(dt)
   coach.update(dt)
   spinWheel.update(dt)
@@ -255,6 +304,7 @@ function frame() {
   daily.update(dt)
   endTrophy.update(dt)
   vipLane.update(dt)
+  teleport.update()
   if (inputState.emote && emotes.equipped) animator?.playEmote(emotes.equipped) // G
   inputState.emote = false
   inputState.interact = false // an E press nothing near wanted
@@ -294,5 +344,5 @@ initNet({ hud }) // Colyseus (net.js): progress saves, the room roster and trade
 
 // Dev-only console hook, e.g. __game.teleport(10, 0, -5); __game.frame() steps one frame while the tab is hidden
 if (import.meta.env.DEV) {
-  window.__game = { player, camera, scene, renderer, frame, hud, surf, climb, stamina, staminaBoost, perks, coach, petIndex, pets, inventory, spinWheel, shop, eggs, mutate, daily, followers, kayaks, trails, emotes, boosts, spray, ripples, trade, net, endTrophy, vipLane, teleport: (x, y, z, facing = player.facing) => { resetPlayer({ x, y, z }, facing); syncYawToPlayer() } }
+  window.__game = { player, camera, scene, renderer, frame, hud, surf, climb, stamina, staminaBoost, perks, coach, petIndex, pets, inventory, spinWheel, shop, eggs, mutate, daily, followers, remotes, kayaks, trails, emotes, boosts, spray, ripples, trade, net, endTrophy, vipLane, portal: teleport, teleport: (x, y, z, facing = player.facing) => { resetPlayer({ x, y, z }, facing); syncYawToPlayer() } }
 }

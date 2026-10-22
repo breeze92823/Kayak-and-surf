@@ -55,6 +55,7 @@ export const LIGHT = {
   sunIntensity: 2.4,
   sunPosition: [-25, 70, 35], // high and behind-left
   shadowMapSize: 2048,
+  touchShadowMapSize: 1024, // phones and tablets (device.js isTouch): a quarter of the texels, same coverage
   shadowRange: 60, // half-width of the shadow frustum around the player
   hemiSky: '#eaf5ff',
   hemiGround: '#e6c77e', // warm bounce light off the sand
@@ -256,6 +257,14 @@ export const VIP_LANE = {
   promptRange: 4.5,
   speed: 2,
   coins: 2,
+}
+
+// --- Teleport portal (teleport.js, hub/layout.js PORTAL) ---------------------------------
+// The portal on the portal isle needs `wins` (trophies, not spent) to use: within `promptRange` m
+// an "E  Need 100 Wins / Teleport" prompt hangs over it while short. It has nowhere to go yet.
+export const TELEPORT = {
+  wins: 100,
+  promptRange: 6,
 }
 
 // --- Blue-lane stamina (stamina.js) ---------------------------------------------

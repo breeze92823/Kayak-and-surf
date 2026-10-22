@@ -1,5 +1,6 @@
 // WASD/arrows move (camera-relative, consumed by player.js), mouse look + wheel zoom
-// (consumed by camera.js), edge-triggered jump (cleared by player.js).
+// (consumed by camera.js), edge-triggered jump (cleared by player.js). Touch feeds the same
+// state from touch.js (stick, drag-to-look, pinch, buttons).
 export const inputState = {
   move: { x: 0, z: 0 }, // x = strafe (+ right), z = forward (+ forward)
   look: { dx: 0, dy: 0 }, // raw pixels since the camera last read them
@@ -24,6 +25,11 @@ const syncDig = () => {
 // One wheel notch per WheelEvent.deltaMode (pixels, lines, pages), so a trackpad
 // and a mouse zoom at the same rate.
 const NOTCH_PER_DELTA = [1 / 100, 1 / 3, 1]
+
+// Keys whose default action scrolls. The game page can't scroll, so the browser hands the scroll
+// to the Bloxity page around the iframe (Space jumped it to the bottom); the game keeps them.
+const SCROLL_KEYS = new Set(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End'])
+const typing = (el) => !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
 
 const held = new Set()
 let orbiting = false // right-drag fallback where pointer lock is refused
@@ -59,6 +65,7 @@ export function install(showMenu, canvasEl) {
     }
   })
   window.addEventListener('keydown', (e) => {
+    if (SCROLL_KEYS.has(e.code) && !typing(e.target)) e.preventDefault() // held keys repeat, so before the repeat check
     if (e.repeat) return
     if (e.code === 'Escape') showMenu()
     else if (!armed) {

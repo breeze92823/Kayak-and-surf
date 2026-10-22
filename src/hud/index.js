@@ -1,7 +1,8 @@
 // The on-screen HUD, laid out off the reference shot (1917x991, 1em = 16px there; hud.css scales
 // it with the viewport). DOM over the canvas: the root ignores the pointer, buttons take it.
 import './hud.css'
-import { CHARACTER_COLORS, RIDE_PERKS } from '../config.js'
+import './compact.css' // phones / small windows: bigger re-laid HUD, windows fitted to the screen
+import { CHARACTER_COLORS, EGG_HATCH, RIDE_PERKS } from '../config.js'
 import { SLIDE } from '../hub/layout.js'
 import * as icon from './icons.js'
 
@@ -92,7 +93,7 @@ const html = () => `
 <div class="hud-right">
   <button class="hud-offer" data-id="offer">
     <i class="hud-rays"></i>
-    <span class="hud-offer-price"><i>${icon.robux}</i><b class="hud-txt">9</b></span>
+    <span class="hud-offer-price"><i>${icon.coin}</i><b class="hud-txt">${formatNum(EGG_HATCH.pets.bee)}</b></span>
     <span class="hud-offer-pet">${icon.bee}</span>
     <span class="hud-offer-boost"><i>${icon.coin}</i><b class="hud-txt">Boost x70</b></span>
     ${badge()}

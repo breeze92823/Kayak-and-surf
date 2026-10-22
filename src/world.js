@@ -100,13 +100,14 @@ export function createSky() {
 
 // Warm sky/ground hemisphere fill + one shadow-casting sun. The sun's shadow box follows the
 // player so a small map covers the whole play area at full resolution; the follow point is
-// snapped to shadow-texel steps so shadows do not shimmer while the player walks.
-export function createLights() {
+// snapped to shadow-texel steps so shadows do not shimmer while the player walks. Phones pass a
+// smaller `mapSize` (main.js).
+export function createLights(mapSize = LIGHT.shadowMapSize) {
   const hemi = new HemisphereLight(LIGHT.hemiSky, LIGHT.hemiGround, LIGHT.hemiIntensity)
   const sun = new DirectionalLight(LIGHT.sunColor, LIGHT.sunIntensity)
   const offset = { x: LIGHT.sunPosition[0], y: LIGHT.sunPosition[1], z: LIGHT.sunPosition[2] }
   sun.castShadow = true
-  sun.shadow.mapSize.set(LIGHT.shadowMapSize, LIGHT.shadowMapSize)
+  sun.shadow.mapSize.set(mapSize, mapSize)
   const r = LIGHT.shadowRange
   Object.assign(sun.shadow.camera, { left: -r, right: r, top: r, bottom: -r, near: 1, far: 150 })
   sun.shadow.bias = -0.0004
@@ -115,7 +116,7 @@ export function createLights() {
   // The sun (and its shadow camera) rides along with the player, height included: left at a fixed
   // height, high up the slide it ended up below the player inside the tall terraces, and from in
   // there everything read as shadowed (the whole view went dark). Snapped to shadow texels.
-  const texel = (r * 2) / LIGHT.shadowMapSize
+  const texel = (r * 2) / mapSize
   const follow = (px, pz, py = 0) => {
     const x = Math.round(px / texel) * texel
     const y = Math.round(py / texel) * texel

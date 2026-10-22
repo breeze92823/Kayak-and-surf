@@ -1,12 +1,12 @@
 // The VIP lane's DOM (vipLane.js): the "E  Buy for 25K Wins / VIP Access" prompt by the rope (coach.css
-// prompt; a click buys like E) and a toast (coach.css toast).
+// prompt; a click buys like E) and a toast (coach.css toast). teleport.js reuses it with its own `title`.
 import './vipLane.css'
 
-export function createVipPrompt(root, { onBuy }) {
+export function createVipPrompt(root, { onBuy, title = 'VIP Access' }) {
   const el = document.createElement('div')
   el.className = 'vip'
   el.innerHTML = `
-<button class="coach-prompt vip-prompt"><span class="coach-key">E</span><span class="coach-prompt-txt"><small></small><b>VIP Access</b></span></button>
+<button class="coach-prompt vip-prompt"><span class="coach-key">E</span><span class="coach-prompt-txt"><small></small><b>${title}</b></span></button>
 <div class="coach-toast vip-toast"><b class="hud-txt"></b><span class="hud-txt"></span></div>`
   root.appendChild(el)
 

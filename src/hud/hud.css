@@ -7,7 +7,7 @@
 /* white text with a thick dark outline, the game's signature look */
 .hud-txt { color: #fff; font-weight: 700; line-height: 1; white-space: nowrap; -webkit-text-stroke: 0.2em #111; paint-order: stroke fill; text-shadow: 0 0.06em 0 rgba(0, 0, 0, 0.45); }
 .hud button { transition: transform 0.12s ease; }
-.hud button:hover { transform: scale(1.05); }
+@media (hover: hover) { .hud button:hover { transform: scale(1.05); } } /* a tap would leave it stuck on touch screens */
 .hud button:active { transform: scale(0.94); }
 
 /* red "!" notification badge */
@@ -129,6 +129,4 @@
 .hud-timer i { width: 3.6em; height: 3.6em; filter: drop-shadow(0 0.08em 0 rgba(0, 0, 0, 0.35)); }
 .hud-timer-val { margin-top: -0.55em; font-size: 1.4em; }
 
-/* small / touch screens (html.compact, device.js): clear the notch */
-html.compact .hud-dist { margin-left: env(safe-area-inset-left); }
-html.compact .hud-right, html.compact .hud-tr { margin-right: env(safe-area-inset-right); }
+/* small / touch screens (html.compact, device.js): the re-laid HUD and fitted windows are in compact.css */

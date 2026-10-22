@@ -9,9 +9,15 @@
 // carry it, so a save written before a trade landed can't bring back pets that were traded away.
 // A signed-in player's daily rewards are server-checked too (backend src/daily.ts): daily.js sends
 // `claimDaily` and listens for `daily` / `dailyClaimed` / `dailyDenied` through onNet().
+// The server broadcasts the TOP boards as `leaderboard` ({ coins, trophies, playtime }: up to ten
+// { id, name, value } rows each, `id` = the sessionId for an online player); main.js paints the hub's
+// boards from it. Playtime (seconds with the tab visible) is counted and saved here.
+// Everyone in the room sees everyone else: this player's pose (place, heading, slide tilt, paddle /
+// surf / climb, equipped boat) goes out as `pose`, the signed-in look as `avatar` / `setAvatar`, and
+// remotePlayers.js draws the others straight from the room state (net.players).
 import { Client } from '@colyseus/sdk'
 import { DEV_MODE, GAME_SLUG, NET, SERVER_URL } from './config.js'
-import { authState, getPfp, sdk, subscribeAuth } from './bloxity.js'
+import { authState, getEquippedAvatar, getPfp, getProportions, getSkinTextureUrl, onAvatarChanged, onProportionsChanged, sdk, subscribeAuth } from './bloxity.js'
 import { inventory } from './petInventory.js'
 import { kayaks } from './kayaks.js'
 import { training } from './training.js'
@@ -27,6 +33,11 @@ export const net = {
   room: null,
   connected: false,
   hydrated: false, // a progress/noProgress answer arrived: saving is allowed
+  leaderboard: null, // the last `leaderboard` broadcast (null until one arrives)
+  // Seconds played (tab visible), saved progress included once it loads.
+  get playtime() {
+    return Math.floor(playtime)
+  },
   get sessionId() {
     return this.room?.sessionId ?? null
   },
@@ -98,6 +109,7 @@ export const accountId = () => {
 export const hasServer = () => !!(SERVER_URL || canResolve())
 
 // --- Saving ------------------------------------------------------------------
+let playtime = 0 // s, see net.playtime
 let petsRev = 0
 let lastSaved = ''
 let saveTimer = 0
@@ -111,12 +123,13 @@ let hud = null // initNet's: coins and trophies live in its state
 const progress = () => ({
   coins: hud?.get('coins') ?? 0,
   trophies: hud?.get('trophies') ?? 0,
+  playtime: Math.floor(playtime),
   ...kayaks.snapshot(),
   ...training.snapshot(),
   ...petIndex.snapshot(),
   ...inventory.snapshot(),
 })
-const SAVED_KEYS = ['coins', 'trophies', 'kayaks', 'kayak', 'coaches', 'equippedCoaches', 'discovered', 'pets']
+const SAVED_KEYS = ['coins', 'trophies', 'playtime', 'kayaks', 'kayak', 'coaches', 'equippedCoaches', 'discovered', 'pets']
 const snapshot = () => JSON.stringify({ ...progress(), petsRev })
 const isGuest = () => sentId.startsWith('guest-')
 
@@ -126,6 +139,7 @@ function hydrate(doc) {
   const counters = {}
   for (const k of ['coins', 'trophies']) if (Number.isFinite(doc[k])) counters[k] = doc[k]
   hud?.set(counters)
+  if (Number.isFinite(doc.playtime)) playtime = doc.playtime
   kayaks.hydrate(doc)
   training.hydrate(doc)
   petIndex.hydrate(doc)
@@ -153,22 +167,42 @@ function scheduleSave() {
 }
 
 // --- Pose --------------------------------------------------------------------
-// Where this player is, for everyone else's distance bar: at most every NET.poseEvery s, and
-// nothing while the raft sits still.
+// Where this player is, for everyone else's distance bar and their copy of this raft
+// (remotePlayers.js): at most every NET.poseEvery s, and nothing while the raft sits still.
+// `pose`: '' paddling, 'surf' standing on the silver lane, 'climb' paddling up a ride lane;
+// `speed01` 0..1 drives the stroke / crouch; pitch and roll tilt the raft on the slide (rad).
 let poseAt = 0
 let lastPose = ''
 const cm = (n) => Math.round(n * 100) / 100
 
-export function sendPose({ x, y, z, yaw }) {
+export function sendPose({ x, y, z, yaw, pitch = 0, roll = 0, pose = '', speed01 = 0 }) {
   if (!net.connected) return
   const now = performance.now()
   if (now - poseAt < NET.poseEvery * 1000) return
-  const msg = { x: cm(x), y: cm(y), z: cm(z), yaw: cm(yaw) }
-  const key = `${msg.x},${msg.y},${msg.z},${msg.yaw}`
+  const msg = { x: cm(x), y: cm(y), z: cm(z), yaw: cm(yaw), pitch: cm(pitch), roll: cm(roll), pose, speed01: cm(speed01), boat: kayaks.equipped }
+  const key = Object.values(msg).join()
   if (key === lastPose) return
   poseAt = now
   lastPose = key
   send('pose', msg)
+}
+
+// The signed-in player's Bloxity look for the others' copy of them: { equipped, proportions, skin }
+// as JSON ('' = guest / signed out: the default character). The skin URL is dropped if it would push
+// the payload past the server's cap (backend AVATAR_MAX_LEN).
+const AVATAR_MAX = 3000
+function avatarJson() {
+  const equipped = authState.user ? getEquippedAvatar() : null
+  if (!equipped) return ''
+  const look = { equipped, proportions: getProportions() ?? null, skin: getSkinTextureUrl() }
+  let json = JSON.stringify(look)
+  if (json.length > AVATAR_MAX) json = JSON.stringify({ ...look, skin: null })
+  return json.length > AVATAR_MAX ? '' : json
+}
+let sentAvatar = '' // look the server holds for this session
+function syncAvatar() {
+  if (!net.connected || avatarJson() === sentAvatar) return
+  send('setAvatar', { avatar: (sentAvatar = avatarJson()) })
 }
 
 export function send(type, payload) {
@@ -212,7 +246,10 @@ function attach(room) {
     net.hydrated = false
     console.warn('[net] server could not read the saved progress; saving is off for this session')
   })
-  room.onMessage('leaderboard', () => {}) // no boards are drawn from it yet
+  room.onMessage('leaderboard', (msg) => {
+    net.leaderboard = msg ?? null
+    emit('leaderboard', net.leaderboard)
+  })
   room.onMessage('tradeOpen', () => saveNow()) // the server checks offers against the last save
   room.onMessage('tradeDone', (msg) => {
     inventory.applyTrade(msg ?? {})
@@ -251,7 +288,8 @@ async function connect() {
     sentId = id.userId
     const client = new Client(await serverUrl())
     sentPfp = getPfp() // others draw it on their distance bars (roster `pfp`)
-    attach(await client.joinOrCreate('world', { ...id, pfp: sentPfp }))
+    sentAvatar = avatarJson() // and this look on their copy of the raft's paddler
+    attach(await client.joinOrCreate('world', { ...id, pfp: sentPfp, avatar: sentAvatar }))
   } catch (err) {
     console.info('[net] could not reach the server; playing solo', err?.message ?? err)
     setTimeout(connect, NET.retry * 1000)
@@ -259,6 +297,15 @@ async function connect() {
     connecting = false
   }
 }
+
+// Playtime ticks once a second while the tab is visible, solo or not; every PLAYTIME_SAVE s of it
+// asks for a save (otherwise it rides along with the next one).
+const PLAYTIME_SAVE = 60
+setInterval(() => {
+  if (document.hidden) return
+  playtime += 1
+  if (Math.floor(playtime) % PLAYTIME_SAVE === 0) scheduleSave()
+}, 1000)
 
 // `hud`: main.js's createHud(), whose coins and trophies are saved.
 export function initNet(opts = {}) {
@@ -274,6 +321,7 @@ export function initNet(opts = {}) {
     if (!s.ready) return
     if (!net.connected) return void connect()
     if (getPfp() !== sentPfp) send('setPfp', { pfp: (sentPfp = getPfp()) })
+    syncAvatar()
     const id = identity()
     if (id.userId === sentId) return send('identify', { username: id.username, handle: id.handle })
     saveNow() // under the old id, before switching
@@ -281,6 +329,8 @@ export function initNet(opts = {}) {
     sentId = id.userId
     send('identify', id)
   })
+  onAvatarChanged(syncAvatar)
+  onProportionsChanged(syncAvatar)
   window.addEventListener('beforeunload', saveNow)
   document.addEventListener('visibilitychange', () => document.hidden && saveNow())
 }
