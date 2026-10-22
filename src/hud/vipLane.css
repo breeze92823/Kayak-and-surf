@@ -1,0 +1,8 @@
+/* VIP lane prompt + toast (hud/vipLane.js); the looks come from coach.css. */
+.vip { position: absolute; inset: 0; pointer-events: none; }
+.vip-prompt { z-index: 2; }
+.vip-prompt .coach-prompt-txt small { color: #ffd23a; }
+/* The prompt's transform places it, so the shake goes on its text. */
+.vip-prompt.is-no .coach-prompt-txt { animation: coach-no 0.45s ease; }
+.vip-prompt.is-no .coach-prompt-txt small { color: #ff5a4a; }
+.vip-toast { top: 30%; z-index: 7; }

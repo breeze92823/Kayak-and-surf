@@ -1,0 +1,109 @@
+/* Pet trading (hud/trade.js), measured off the user's two 1917x991 shots: same em unit and outlined
+   text as hud.css, positions are offsets from the screen centre. Pet cards reuse pets.css. */
+
+.trade { position: absolute; inset: 0; pointer-events: none; }
+/* while trading, the right-hand HUD column and the lane widgets step aside */
+.hud.trade-open .hud-right, .hud.trade-open .hud-gift, .hud.trade-open.in-lane .hud-lane > *, .hud.trade-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+
+.trade-list, .trade-win { position: absolute; left: 50%; top: 9.9em; width: 0; height: 0; opacity: 0; visibility: hidden; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.trade-list.open, .trade-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.trade-list.open .trade-list-panel, .trade-win.open .trade-panel { pointer-events: auto; }
+.trade-list.pop .trade-list-panel, .trade-win.pop .trade-panel, .trade-win.pop .trade-title { animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+
+/* --- the list: one row per player ----------------------------------------------------------- */
+.trade-list-panel { position: absolute; left: -23.1em; top: 0; width: 46.6em; height: 42.2em; box-sizing: border-box; border-radius: 1em; border: 0.22em solid #141414;
+  background: rgba(46, 40, 42, 0.62); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); box-shadow: 0 0.5em 1.6em rgba(0, 0, 0, 0.35); transform-origin: 50% 45%; }
+.trade-list-head { position: relative; height: 4.9em; }
+.trade-list-title { position: absolute; left: 1.2em; top: 50%; transform: translateY(-45%); font-size: 2.45em; -webkit-text-stroke-width: 0.14em; }
+.hud .trade-x { right: 0.4em; top: 0.4em; }
+.trade-rows { position: absolute; left: 1.05em; right: 1.05em; top: 5.25em; bottom: 0.7em; display: flex; flex-direction: column; gap: 0.25em; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.7) transparent; overscroll-behavior: contain; }
+.trade-row { position: relative; flex: none; height: 7em; box-sizing: border-box; border-radius: 0.6em; border: 0.15em solid rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.32); animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.trade-row-title { position: absolute; left: 0.55em; top: 0.25em; font-size: 2.5em; -webkit-text-stroke-width: 0.14em; }
+.trade-row-name { position: absolute; left: 0.75em; bottom: 0.45em; max-width: 19em; overflow: hidden; text-overflow: ellipsis; font-size: 1.85em; -webkit-text-stroke-width: 0.16em; }
+.hud .trade-go { position: absolute; right: 1.6em; top: 50%; width: 3em; height: 3.9em; transform: translateY(-50%); filter: drop-shadow(0 0.12em 0 rgba(0, 0, 0, 0.35)); }
+.hud .trade-go:hover { transform: translateY(-50%) scale(1.1); }
+.hud .trade-go:active { transform: translateY(-50%) scale(0.92); }
+.trade-row-tag { position: absolute; right: 1.1em; top: 50%; transform: translateY(-50%); font-size: 1.7em; -webkit-text-stroke-width: 0.17em; }
+.trade-row.is-guest, .trade-row.is-busy { background: rgba(120, 120, 128, 0.3); border-color: rgba(255, 255, 255, 0.45); }
+.trade-row.is-guest .hud-txt, .trade-row.is-busy .hud-txt { color: #c8c8cc; }
+.trade-row.is-busy .trade-row-tag { color: #ffb02a; }
+.trade-row.is-sent { border-color: #5cff4a; }
+.trade-row.is-sent .trade-row-tag { color: #5cff4a; animation: trade-blink 1s ease-in-out infinite; }
+@keyframes trade-blink { 50% { opacity: 0.45; } }
+.trade-note { position: absolute; left: 50%; top: 45%; transform: translateX(-50%); font-size: 1.6em; -webkit-text-stroke-width: 0.16em; opacity: 0.9; }
+
+/* --- incoming requests, top centre under the counters ------------------------------------- */
+.trade-asks { position: absolute; left: 50%; top: 6.6em; width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.6em; z-index: 5; }
+.trade-ask { position: relative; flex: none; width: 27em; box-sizing: border-box; padding: 0.8em 1em 1.3em; display: flex; flex-direction: column; align-items: center; gap: 0.35em; border-radius: 0.8em; border: 0.2em solid #141414;
+  background: rgba(46, 40, 42, 0.85); box-shadow: 0 0.4em 1.2em rgba(0, 0, 0, 0.35); pointer-events: auto; animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.trade-ask.out { animation: trade-out 0.25s ease forwards; }
+@keyframes trade-out { to { opacity: 0; transform: scale(0.8); } }
+.trade-ask-who { max-width: 12em; overflow: hidden; text-overflow: ellipsis; font-size: 2em; color: #ffd21a; -webkit-text-stroke-width: 0.15em; }
+.trade-ask-line { font-size: 1.4em; -webkit-text-stroke-width: 0.17em; }
+.trade-ask-btns { display: flex; gap: 1em; margin-top: 0.3em; }
+.trade-ask .trade-btn { width: 10em; height: 2.7em; }
+.trade-ask-bar { position: absolute; left: 1em; right: 1em; bottom: 0.45em; height: 0.4em; border-radius: 0.2em; background: rgba(0, 0, 0, 0.45); overflow: hidden; }
+.trade-ask-time { display: block; height: 100%; background: linear-gradient(90deg, #5cff4a, #ffd21a); transition: width 0.2s linear; }
+
+/* --- the trade window ---------------------------------------------------------------------- */
+.trade-panel { position: absolute; left: -37.95em; top: 0; width: 75.9em; height: 42.2em; box-sizing: border-box; border-radius: 1em; border: 0.25em solid #10261e;
+  background: rgba(24, 92, 84, 0.32); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); box-shadow: 0 0.5em 1.6em rgba(0, 0, 0, 0.35); transform-origin: 50% 45%; }
+/* the titles straddle the panel's top edge over each box (offsets in the title's own 3em unit) */
+.trade-title { position: absolute; top: -0.75em; translate: -50% 0; z-index: 1; font-size: 3em; -webkit-text-stroke-width: 0.13em; }
+.trade-title-me { left: -6.9em; }
+.trade-title-them { left: 6.97em; max-width: 10.5em; overflow: hidden; text-overflow: ellipsis; padding: 0 0.1em; }
+
+.trade-box { position: absolute; box-sizing: border-box; border-radius: 1em; border: 0.14em solid rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.24); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.trade-mine { left: 0.75em; top: 1.3em; width: 32.6em; height: 40.2em; }
+.trade-theirs { left: 42.4em; top: 1.2em; width: 32.6em; height: 33.75em; }
+.trade-box.is-ok { border-color: #5cff4a; box-shadow: 0 0 0 0.18em #1a8a1a, 0 0 1.2em rgba(92, 255, 74, 0.6); }
+.trade-box.is-flash { animation: trade-flash 0.7s ease; }
+@keyframes trade-flash { 0% { box-shadow: 0 0 0 0 rgba(92, 255, 74, 0.95); } 100% { box-shadow: 0 0 0 1.2em rgba(92, 255, 74, 0); } }
+.trade-ok { position: absolute; right: 0.5em; top: 0.4em; font-size: 1.5em; color: #5cff4a; -webkit-text-stroke-width: 0.17em; transform: rotate(6deg); opacity: 0; transition: opacity 0.2s ease; }
+.trade-box.is-ok .trade-ok { opacity: 1; }
+
+/* offered pets: 9 slots, 5 + 4 */
+.trade-offer { position: absolute; left: 0; right: 0; top: 1.1em; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6em; padding: 0 0.9em; }
+.trade-offer.is-no { animation: pets-no 0.45s ease; }
+.trade .pets-card { width: 5.6em; height: 5.6em; }
+.trade .pets-mult { font-size: 0.85em; }
+.trade-slot { width: 5.6em; height: 5.6em; box-sizing: border-box; border-radius: 0.45em; border: 0.15em dashed rgba(255, 255, 255, 0.55); background: rgba(0, 0, 0, 0.12); }
+.trade-offer-mine .pets-card::after { content: '−'; position: absolute; right: -0.35em; top: -0.45em; width: 1.3em; height: 1.3em; display: grid; place-items: center; border-radius: 50%; border: 0.12em solid #141414; background: linear-gradient(#ff4a4a, #d01414); color: #fff; font-weight: 700; line-height: 1; opacity: 0; transition: opacity 0.12s ease; }
+.trade-offer-mine .pets-card:hover::after { opacity: 1; }
+.trade-value { position: absolute; left: 0; right: 0; top: 13.6em; text-align: center; font-size: 1.15em; -webkit-text-stroke-width: 0.2em; color: #ffd21a; }
+.trade-value-mine:empty, .trade-value-theirs:empty { display: none; }
+
+/* my other pets, under the offer */
+.trade-bag { position: absolute; left: 0; right: 0; top: 17.3em; bottom: 0; border-top: 0.14em solid rgba(255, 255, 255, 0.75); }
+.trade-bag-title { display: block; margin: 0.45em 0 0 0.75em; font-size: 1.3em; -webkit-text-stroke-width: 0.18em; }
+.trade-bag-title span { font-size: 0.75em; opacity: 0.8; margin-left: 0.4em; }
+.trade-bag-grid { position: absolute; left: 0; right: 0; top: 2.6em; bottom: 0.5em; display: grid; grid-template-columns: repeat(5, 5.6em); justify-content: center; align-content: start; gap: 0.6em; padding-top: 0.2em; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.7) transparent; overscroll-behavior: contain; }
+.trade-bag-grid .pets-card.is-team { box-shadow: 0 0 0 0.14em #5cff4a, inset 0 0 0 0.12em rgba(255, 255, 255, 0.55); }
+.trade-bag-empty { position: absolute; left: 50%; top: 55%; transform: translateX(-50%); font-size: 1.35em; -webkit-text-stroke-width: 0.18em; opacity: 0.85; }
+.trade-bag-empty:empty { display: none; }
+
+.trade-status { position: absolute; left: 0; right: 0; bottom: 1.4em; text-align: center; font-size: 1.6em; -webkit-text-stroke-width: 0.16em; opacity: 0.85; }
+.trade-status.is-ok { color: #5cff4a; opacity: 1; }
+
+/* the arrows between the boxes; the countdown sits over them */
+.trade-mid { position: absolute; left: 34.9em; top: 15.6em; width: 6em; height: 6em; }
+.trade-arrows { position: absolute; inset: 0; filter: drop-shadow(0 0.15em 0 rgba(0, 0, 0, 0.3)); }
+.trade-win.is-counting .trade-arrows { animation: trade-spin 1s linear infinite; }
+@keyframes trade-spin { 50% { transform: scale(1.12) rotate(8deg); } }
+.trade-count { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 5em; color: #5cff4a; -webkit-text-stroke: 0.1em #0d3006; }
+.trade-count.tick { animation: trade-tick 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes trade-tick { from { transform: translate(-50%, -50%) scale(1.8); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+/* Cancel / Accept (and the request popup's buttons) */
+.hud .trade-btn { position: relative; overflow: hidden; display: grid; place-items: center; box-sizing: border-box; border-radius: 0.55em; border: 0.18em solid #141414 !important; box-shadow: inset 0 -0.35em 0 rgba(0, 0, 0, 0.18), inset 0 0.15em 0 rgba(255, 255, 255, 0.45); }
+.trade-btn b { font-size: 1.55em; -webkit-text-stroke-width: 0.17em; }
+.trade-panel .trade-btn { position: absolute; top: 36.4em; width: 15em; height: 3.75em; }
+.trade-panel .is-cancel { left: 42.7em; }
+.trade-panel .is-accept { left: 59.6em; }
+.hud .trade-btn.is-cancel { background: linear-gradient(#ffe83a, #f5c414) !important; }
+.hud .trade-btn.is-accept { background: linear-gradient(#5cff4a, #22d02a) !important; }
+.hud .trade-btn.is-decline { background: linear-gradient(#ff4a4a, #e01a1a) !important; }
+.hud .trade-btn.is-accept.is-on { background: linear-gradient(#2fb82a, #17801a) !important; box-shadow: inset 0 0.3em 0 rgba(0, 0, 0, 0.25); }
+.trade-btn.is-no { animation: pets-no 0.4s ease; }
+
+.trade-toast { top: 30%; z-index: 6; }

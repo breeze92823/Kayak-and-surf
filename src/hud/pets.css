@@ -1,0 +1,152 @@
+/* The Pet window (hud/pets.js), measured off the 1917x991 reference shot: same em unit and
+   outlined-text look as hud.css. Positions are offsets from the screen centre like the HUD's. */
+
+/* while open, the right-hand HUD column and the lane widgets step aside (counters and the bar stay) */
+.hud.pets-open .hud-right, .hud.pets-open .hud-gift, .hud.pets-open.in-lane .hud-lane > *, .hud.pets-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+.pets { position: absolute; inset: 0; pointer-events: none; }
+
+.pets-win { position: absolute; left: 50%; top: 10.5em; width: 0; height: 0; opacity: 0; visibility: hidden; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.pets-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.pets-win.open .pets-panel, .pets-win.open .pets-bar { pointer-events: auto; }
+.pets-win.pop .pets-panel { animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.pets-win.pop .pets-bar { animation: pets-rise 0.42s 0.06s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+@keyframes pets-pop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.03); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes pets-rise { 0% { transform: translateY(2em); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* --- panel ------------------------------------------------------------------------------- */
+.pets-panel { position: absolute; left: -34.2em; top: 0; width: 68.5em; height: 41.1em; box-sizing: border-box; border-radius: 0.7em; border: 0.2em solid rgba(255, 255, 255, 0.92);
+  background: rgba(40, 32, 34, 0.62); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); box-shadow: 0 0.5em 1.6em rgba(0, 0, 0, 0.35); transform-origin: 50% 45%; }
+.pets-head { position: relative; height: 4.6em; border-radius: 0.5em 0.5em 0 0; background: rgba(80, 74, 72, 0.5); }
+.pets-title { position: absolute; left: 1.2em; top: 50%; transform: translateY(-45%); font-size: 2.6em; -webkit-text-stroke-width: 0.14em; }
+.hud .pets-x { position: absolute; right: 0.55em; top: 0.55em; width: 3.6em; height: 3.6em; padding: 0.7em; box-sizing: border-box; border-radius: 0.55em; border: 0.2em solid #fff !important;
+  background: linear-gradient(#ff3a3a, #d40e0e) !important; box-shadow: 0 0 0 0.14em #2a0000, inset 0 0.2em 0 rgba(255, 255, 255, 0.35); }
+
+/* the bordered box on the right: team on top, the rest below */
+.pets-box { position: absolute; left: 15.75em; top: 5.75em; width: 52em; height: 34.25em; box-sizing: border-box; border-radius: 0.5em; border: 0.14em solid rgba(255, 255, 255, 0.75); background: rgba(0, 0, 0, 0.14); }
+.pets-team-head { position: absolute; left: 0; right: 0; top: 0.75em; display: flex; justify-content: center; align-items: center; gap: 1.6em; }
+.pets-team-head.is-no { animation: pets-no 0.45s ease; }
+.pets-team-head.is-no .pets-team-title { color: #ff5a4a; }
+.pets-team-head.is-up .pets-team-title { animation: pets-glow 0.9s ease; }
+.pets-team-title { font-size: 1.6em; -webkit-text-stroke-width: 0.16em; }
+.hud .pets-plus { width: 2.05em; height: 2.05em; padding: 0.35em; box-sizing: border-box; border-radius: 50%; border: 0.16em solid #111 !important; background: linear-gradient(#5cff4a, #1fc42a) !important; box-shadow: inset 0 0.15em 0 rgba(255, 255, 255, 0.45); }
+.hud .pets-plus.is-max { filter: grayscale(1) brightness(0.8); }
+.pets-team { position: absolute; left: 0; right: 0; top: 3.4em; height: 5.2em; display: flex; justify-content: center; gap: 0.8em; }
+.pets-team .pets-card { width: 5em; height: 5em; }
+.pets-team .pets-mult { left: 0.15em; bottom: 0.1em; font-size: 0.8em; }
+.pets-slot { width: 5em; height: 5em; box-sizing: border-box; border-radius: 0.4em; border: 0.15em dashed rgba(255, 255, 255, 0.45); background: rgba(0, 0, 0, 0.15); }
+.pets-team.is-best .pets-card { animation: pets-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pets-body { position: absolute; left: 0; right: 0; top: 9.4em; bottom: 0; border-top: 0.14em solid rgba(255, 255, 255, 0.75); overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.7) transparent; overscroll-behavior: contain; }
+.pets-body::-webkit-scrollbar { width: 0.45em; }
+.pets-body::-webkit-scrollbar-thumb { border-radius: 0.3em; background: rgba(255, 255, 255, 0.7); }
+.pets-grid { display: grid; grid-template-columns: repeat(6, 6.4em); justify-content: center; column-gap: 1.75em; row-gap: 1.1em; padding: 0.1em 0 1em; }
+.pets-empty { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 1.6em; -webkit-text-stroke-width: 0.16em; opacity: 0.85; }
+
+/* --- pet cards: portrait on the rarity's colour, multiplier bottom left ----------------- */
+.pets-card { position: relative; width: 6.4em; height: 6.6em; box-sizing: border-box; border-radius: 0.45em; border: 0.15em solid #141414; background: var(--rar); box-shadow: inset 0 0 0 0.12em rgba(255, 255, 255, 0.55), inset 0 -0.4em 0 rgba(0, 0, 0, 0.14); cursor: pointer; transition: transform 0.12s ease; }
+.pets-card:hover { transform: scale(1.06); }
+.pets-card img { position: absolute; left: 6%; top: 2%; width: 88%; height: 80%; object-fit: contain; filter: drop-shadow(0 0.12em 0.1em rgba(0, 0, 0, 0.35)); pointer-events: none; }
+.pets-card img:not([src]), .pets-info-face img:not([src]) { visibility: hidden; }
+.pets-mult { position: absolute; left: 0.2em; bottom: 0.15em; display: flex; align-items: center; gap: 0.1em; pointer-events: none; }
+.pets-mult i { width: 1.5em; height: 1.5em; flex: none; }
+.pets-mult b { font-size: 1.15em; -webkit-text-stroke-width: 0.2em; letter-spacing: -0.02em; }
+.pets-grid.flip .pets-card, .pets-team.flip .pets-card { animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+@keyframes pets-card-in { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pets-card.is-picked { border-color: #fff; box-shadow: 0 0 0 0.14em #111, 0 0 0.8em rgba(255, 255, 255, 0.7), inset 0 0 0 0.12em rgba(255, 255, 255, 0.55); }
+.pets-card.is-on, .pets-card.is-new { animation: pets-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pets-card.is-on::after, .pets-card.is-new::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: pets-flash 0.8s ease-out forwards; }
+.pets-card.is-off { animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes pets-up { 0% { transform: scale(1); } 30% { transform: scale(1.14) rotate(-3deg); } 60% { transform: scale(0.97) rotate(1deg); } 100% { transform: scale(1); } }
+@keyframes pets-flash { 0% { box-shadow: 0 0 0 0 rgba(92, 255, 74, 0.95), inset 0 0 2em rgba(220, 255, 200, 0.9); } 100% { box-shadow: 0 0 0 1.1em rgba(92, 255, 74, 0), inset 0 0 2em rgba(220, 255, 200, 0); } }
+@keyframes pets-no { 0%, 100% { translate: 0; } 20% { translate: -0.7em; } 40% { translate: 0.6em; } 60% { translate: -0.4em; } 80% { translate: 0.2em; } }
+@keyframes pets-glow { 0%, 100% { color: #fff; } 40% { color: #5cff4a; transform: scale(1.12); } }
+
+/* rarity colours (the shot: grey-white common, green, blue, purple epic, orange legendary ...) */
+.r-common { --rar: linear-gradient(#ffffff, #cfcfd4); }
+.r-uncommon { --rar: linear-gradient(#8af55a, #34c42a); }
+.r-rare { --rar: linear-gradient(#5ac8ff, #1a72ff); }
+.r-epic { --rar: linear-gradient(#c87aff, #7a28e0); }
+.r-legendary { --rar: linear-gradient(#ffd23a, #ff8a14); }
+.r-secret { --rar: linear-gradient(135deg, #ffb0e8, #fff0a0 30%, #b0ffd8 55%, #b0dcff 80%, #dcb0ff); }
+.r-limited { --rar: linear-gradient(#ffb84a, #d0601a); }
+.r-exclusive { --rar: linear-gradient(#ff5a5a, #b01414); }
+.t-common { color: #e4e4e4; }
+.t-uncommon { color: #3ef07a; }
+.t-rare { color: #4a8aff; }
+.t-epic { color: #c070ff; }
+.t-legendary { color: #ffd21a; }
+.t-secret { background: linear-gradient(90deg, #ff7ad8, #ffe23a, #5aff9a, #5ac8ff, #c07aff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.t-limited { color: #ffb02a; }
+.t-exclusive { color: #ff4a4a; }
+
+/* variants: a tag top left, Big/Huge scale up, Shiny sweeps a shine, Rainbow cycles hue */
+.pets-tag { position: absolute; left: 0.2em; top: 0.1em; font-size: 0.8em; font-weight: 700; color: #fff; -webkit-text-stroke: 0.2em #111; paint-order: stroke fill; z-index: 1; pointer-events: none; }
+.pets-v.v-big .pets-tag::before { content: 'BIG'; color: #7ad8ff; }
+.pets-v.v-huge .pets-tag::before { content: 'HUGE'; color: #ffd21a; }
+.pets-v.v-shiny .pets-tag::before { content: 'SHINY'; color: #fff6a0; }
+.pets-v.v-rainbow .pets-tag::before { content: 'RAINBOW'; background: linear-gradient(90deg, #ff5a5a, #ffd23a, #5aff7a, #5ac8ff, #c07aff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.pets-v.v-big img { transform: scale(1.08); }
+.pets-v.v-huge img { transform: scale(1.2) translateY(0.1em); }
+.pets-v.v-shiny img { filter: saturate(1.35) brightness(1.12) drop-shadow(0 0 0.35em rgba(255, 250, 180, 0.95)); }
+.pets-v.v-shiny::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.75) 45%, transparent 60%); background-size: 250% 100%; animation: pets-shine 2.4s ease-in-out infinite; }
+@keyframes pets-shine { 0% { background-position: 120% 0; } 60%, 100% { background-position: -120% 0; } }
+.pets-v.v-rainbow img { animation: pets-hue 3s linear infinite; }
+@keyframes pets-hue { from { filter: saturate(2.2) hue-rotate(0deg) drop-shadow(0 0 0.3em rgba(255, 255, 255, 0.7)); } to { filter: saturate(2.2) hue-rotate(360deg) drop-shadow(0 0 0.3em rgba(255, 255, 255, 0.7)); } }
+
+/* delete mode: cards wiggle, marked ones go red with a cross */
+.pets-mark { position: absolute; inset: 0; display: none; place-items: center; padding: 1.4em; border-radius: inherit; background: rgba(220, 20, 20, 0.55); pointer-events: none; }
+.pets-card.is-marked .pets-mark { display: grid; }
+.pets-card.is-marked { border-color: #ff3a3a; }
+.pets.is-deleting .pets-card:not(.is-marked) { animation: pets-wiggle 0.5s ease-in-out infinite; }
+.pets.is-deleting .pets-card:nth-child(2n) { animation-delay: -0.25s; }
+.pets-card.is-tick { animation: pets-up 0.35s ease; }
+@keyframes pets-wiggle { 0%, 100% { rotate: -1.5deg; } 50% { rotate: 1.5deg; } }
+
+/* --- left of the box: the picked pet, or the team's boost ------------------------------- */
+.pets-side { position: absolute; left: 0.9em; top: 5.75em; width: 14em; height: 34.25em; }
+.pets-sum, .pets-info { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; transition: opacity 0.15s ease; }
+.pets-side.has-pick .pets-sum, .pets-side:not(.has-pick) .pets-info { opacity: 0; visibility: hidden; pointer-events: none; }
+.pets-sum { justify-content: center; gap: 0.6em; }
+.pets-sum-title { font-size: 1.9em; -webkit-text-stroke-width: 0.15em; }
+.pets-sum-val { display: flex; align-items: center; gap: 0.25em; }
+.pets-sum-val i { width: 3.2em; height: 3.2em; }
+.pets-sum-val b { font-size: 2.6em; color: #ffd21a; -webkit-text-stroke-width: 0.13em; }
+.pets-sum-hint { font-size: 1.05em; text-align: center; white-space: normal; line-height: 1.25; -webkit-text-stroke-width: 0.2em; opacity: 0.85; }
+.pets-info { gap: 0.45em; padding-top: 0.4em; }
+.pets-info.pop .pets-info-face { animation: pets-up 0.5s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.pets-info-face { position: relative; width: 12em; height: 12em; box-sizing: border-box; border-radius: 0.6em; border: 0.18em solid #141414; background: var(--rar); box-shadow: inset 0 0 0 0.15em rgba(255, 255, 255, 0.55), inset 0 -0.6em 0 rgba(0, 0, 0, 0.14); overflow: hidden; }
+.pets-info-face img { position: absolute; inset: 6%; width: 88%; height: 88%; object-fit: contain; filter: drop-shadow(0 0.15em 0.12em rgba(0, 0, 0, 0.35)); }
+.pets-info-face .pets-tag { font-size: 1.1em; left: 0.3em; top: 0.2em; }
+.pets-info-name { max-width: 7em; text-align: center; white-space: normal; line-height: 0.95; -webkit-text-stroke-width: 0.13em; }
+.pets-info-rarity { font-size: 1.45em; -webkit-text-stroke-width: 0.15em; }
+.pets-info-mult { display: flex; align-items: center; gap: 0.2em; }
+.pets-info-mult i { width: 2.4em; height: 2.4em; }
+.pets-info-mult b { font-size: 2em; -webkit-text-stroke-width: 0.14em; }
+.pets-side .pets-btn { width: 11em; height: 2.6em; }
+.pets-info-equip { margin-top: auto; }
+.pets-info-del { margin-bottom: 0.4em; }
+.hud .pets-info-del.is-sure { background: linear-gradient(#ff2a2a, #a80a0a) !important; }
+.pets-info-del.is-no { animation: pets-no 0.35s ease; }
+
+/* --- bottom bar ---------------------------------------------------------------------------- */
+.pets-bar { position: absolute; left: -20.4em; top: 41.4em; width: 54.75em; height: 3.1em; box-sizing: border-box; display: flex; align-items: center; gap: 1.05em; padding: 0 0.95em; border-radius: 0.6em; border: 0.2em solid #141414; background: rgba(40, 34, 36, 0.82); }
+.hud .pets-btn { width: 8.75em; height: 2.3em; flex: none; display: grid; place-items: center; box-sizing: border-box; border-radius: 0.45em; border: 0.15em solid #141414 !important; box-shadow: inset 0 -0.3em 0 rgba(0, 0, 0, 0.18), inset 0 0.15em 0 rgba(255, 255, 255, 0.4); }
+.pets-btn b { font-size: 1.15em; -webkit-text-stroke-width: 0.2em; letter-spacing: -0.02em; }
+.hud .pets-btn.is-best { background: linear-gradient(#5cff4a, #22d02a) !important; }
+.hud .pets-btn.is-none { background: linear-gradient(#ffb02a, #f07a10) !important; }
+.hud .pets-btn.is-del { background: linear-gradient(#ff4a4a, #e01a1a) !important; }
+.hud .pets-btn.is-off { background: linear-gradient(#ff6a4a, #e0301e) !important; }
+.pets-btn.is-best::after { content: ''; position: absolute; top: 0; bottom: 0; width: 25%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); animation: pets-sheen 3.2s ease-in-out infinite; }
+.hud .pets-btn { position: relative; overflow: hidden; }
+@keyframes pets-sheen { 0%, 65% { left: -40%; } 100% { left: 120%; } }
+.pets-bar.is-deleting [data-act='best'] { opacity: 0.35; pointer-events: none; }
+.hud .pets-bar.is-deleting .is-none { background: linear-gradient(#b8b8be, #84848c) !important; }
+.pets-bar.is-deleting .is-del { animation: pets-pulse 1s ease-in-out infinite; }
+@keyframes pets-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 60, 60, 0.8); } 50% { box-shadow: 0 0 0 0.35em rgba(255, 60, 60, 0); } }
+.pets-sep { width: 0.2em; height: 2.2em; margin: 0 0.6em; border-radius: 0.1em; background: rgba(255, 255, 255, 0.55); }
+.pets-store { flex: 1; display: flex; align-items: center; justify-content: center; gap: 2.4em; }
+.pets-store i { width: 2.4em; height: 2.4em; }
+.pets-store b { font-size: 1.5em; -webkit-text-stroke-width: 0.17em; }
+.pets-store.is-full b { color: #ff5a4a; }
+.pets-store.is-no { animation: pets-no 0.45s ease; }
+
+.pets-toast { top: 30%; }

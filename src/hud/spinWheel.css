@@ -1,0 +1,109 @@
+/* The spin wheel: Spin window, prize toast, flying coins and boost chips (hud/spinWheel.js). Same em
+   unit and outlined-text look as hud.css. The window is a 120x62em stage (the 1920x991 reference
+   shot at 1em = 16px) centred on the screen, so its pieces are placed at shot px / 16. The E prompt
+   reuses coach.css's .coach-prompt. */
+
+.spin { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+/* while open, as with the Coach window (coach.css): the game blurred behind, only wins + coins left on the HUD */
+.spin-backdrop { position: fixed; inset: 0; opacity: 0; visibility: hidden; pointer-events: none; background: rgba(12, 18, 34, 0.28); -webkit-backdrop-filter: blur(7px) saturate(1.1); backdrop-filter: blur(7px) saturate(1.1); transition: opacity 0.22s ease, visibility 0s 0.22s; }
+.hud.spin-open .spin-backdrop { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.22s ease, visibility 0s; }
+.hud.spin-open > *:not(.hud-tc):not(.spin) { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; transition: opacity 0.2s ease, visibility 0s 0.2s; }
+.hud.spin-open .hud-tc { z-index: 3; }
+
+.spin-win { position: absolute; left: 50%; top: 50%; width: 120em; height: 62em; transform: translate(-50%, -50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.spin-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.spin-stage { position: absolute; inset: 0; }
+.spin-win.open .spin-stage > * { pointer-events: auto; }
+.spin-win.pop .spin-wheel { animation: spin-pop 0.45s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.spin-win.pop .spin-op, .spin-win.pop .spin-skip, .spin-win.pop .spin-x { animation: spin-pop 0.45s cubic-bezier(0.25, 1.5, 0.45, 1) 0.06s both; }
+.spin-win.pop .spin-col { animation: spin-rise 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.spin-win.pop .spin-col-go { animation-delay: 0.05s; }
+.spin-win.pop .spin-col-10 { animation-delay: 0.1s; }
+@keyframes spin-pop { 0% { transform: scale(0.55); opacity: 0; } 60% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes spin-rise { 0% { transform: translateY(3em); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* --- the wheel ------------------------------------------------------------------------------ */
+.spin-wheel { position: absolute; left: 39.375em; top: 7.19em; width: 41.25em; height: 41.25em; border-radius: 50%; box-shadow: 0 0 0 0.25em rgba(0, 0, 0, 0.35), 0 0.8em 1.8em rgba(0, 0, 0, 0.45); }
+.spin-face { position: absolute; inset: 0; width: 100%; height: 100%; will-change: transform; }
+.spin-hl { position: absolute; inset: 5.3%; border-radius: 50%; opacity: 0; pointer-events: none; background: conic-gradient(from -30deg, rgba(255, 255, 255, 0.75) 0 60deg, transparent 60deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 18%, #000 45%); mask: radial-gradient(closest-side, transparent 18%, #000 45%); mix-blend-mode: overlay; }
+.spin-hl.on { animation: spin-hl 0.6s ease-in-out infinite alternate; }
+@keyframes spin-hl { from { opacity: 0.35; } to { opacity: 1; } }
+.spin-hub { position: absolute; left: 50%; top: 50%; width: 4.6em; height: 4.6em; transform: translate(-50%, -50%); border-radius: 50%; box-sizing: border-box; border: 0.22em solid #8a1626;
+  background: radial-gradient(circle at 40% 35%, #ff9a9e, #f0606a 45%, #d83846); box-shadow: 0 0.2em 0.4em rgba(0, 0, 0, 0.35), inset 0 -0.3em 0 rgba(0, 0, 0, 0.15); }
+.spin-pointer { position: absolute; left: 18.625em; top: -2.19em; width: 4em; height: 6em; transform-origin: 50% 12%; filter: drop-shadow(0 0.25em 0.2em rgba(0, 0, 0, 0.45)); }
+
+/* --- red X ------------------------------------------------------------------------------------ */
+.hud .spin-x { position: absolute; left: 75.6em; top: 6.5em; width: 3.75em; height: 3.75em; padding: 0.65em; box-sizing: border-box; border-radius: 0.55em; border: 0.22em solid #fff !important; background: linear-gradient(#f43a30, #d81e1e) !important; box-shadow: 0 0 0 0.14em #2a0606, inset 0 -0.3em 0 rgba(0, 0, 0, 0.2); }
+
+/* --- Skip Animation toggle ------------------------------------------------------------------- */
+.spin-skip { position: absolute; left: 81.1em; top: 12.8em; width: 16.7em; height: 4.2em; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 0.7em 0 0.6em; border-radius: 0.45em; background: #fff57a; border: 0.2em solid #f2c81a; box-shadow: 0 0 0 0.12em #3a2a00, 0 0.25em 0 rgba(0, 0, 0, 0.25); }
+.spin-skip .hud-txt { font-size: 1.45em; -webkit-text-stroke-width: 0.2em; }
+.hud .spin-toggle { position: relative; width: 5.1em; height: 2.5em; border-radius: 1.25em; background: #3a3a3e !important; border: 0.17em solid #111 !important; transition: background 0.18s ease, transform 0.12s ease; }
+.spin-toggle i { position: absolute; left: 0.2em; top: 50%; width: 1.75em; height: 1.75em; transform: translateY(-50%); border-radius: 50%; background: #b9b9be; box-shadow: inset 0 -0.15em 0 rgba(0, 0, 0, 0.2); transition: left 0.2s cubic-bezier(0.3, 1.5, 0.5, 1), background 0.18s ease; }
+.hud .spin-toggle.on { background: #2fd02a !important; }
+.spin-toggle.on i { left: 2.95em; background: #fff; }
+
+/* --- OP! Spirit Wolf showcase ---------------------------------------------------------------- */
+.spin-op { position: absolute; left: 81.9em; top: 20.4em; width: 15em; height: 20em; pointer-events: none !important; }
+.spin-op-swirl { position: absolute; left: 0; top: 0; width: 15em; height: 15em; border-radius: 50%; animation: hud-spin 3.5s linear infinite;
+  background: conic-gradient(from 0deg, #ff3ad8, #ffe23a, #3aff8a, #3ad8ff, #a03aff, #ff3ad8);
+  -webkit-mask: radial-gradient(closest-side, transparent 52%, #000 62%, #000 74%, transparent 100%); mask: radial-gradient(closest-side, transparent 52%, #000 62%, #000 74%, transparent 100%); filter: blur(0.15em) saturate(1.2); opacity: 0.9; }
+.spin-op-swirl::after { content: ''; position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0)); }
+.spin-op-pet { position: absolute; left: 1.5em; top: 1.2em; width: 12em; height: 12em; object-fit: contain; animation: spin-bob 2.4s ease-in-out infinite; filter: drop-shadow(0 0.3em 0.3em rgba(0, 0, 0, 0.35)); }
+.spin-op-pet:not([src]) { visibility: hidden; }
+@keyframes spin-bob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-0.5em) rotate(2deg); } }
+.spin-op-tag { position: absolute; right: -0.6em; top: 0.6em; font-size: 2.3em; color: #ffd21a; -webkit-text-stroke: 0.16em #3a0a2a; transform: rotate(10deg); animation: spin-tag 1.2s ease-in-out infinite; }
+@keyframes spin-tag { 0%, 100% { transform: rotate(10deg) scale(1); } 50% { transform: rotate(4deg) scale(1.12); } }
+.spin-op-txt { position: absolute; left: 50%; top: 6.2em; transform: translateX(-50%); text-align: center; font-size: 1.9em; line-height: 1.05; -webkit-text-stroke-width: 0.15em; }
+
+/* --- bottom row: +1 Spin, Spin, +10 Spin ----------------------------------------------------- */
+.spin-col { position: absolute; top: 51.05em; width: 11.95em; display: flex; flex-direction: column; align-items: center; gap: 0.55em; }
+.spin-col-1 { left: 40.1em; }
+.spin-col-go { left: 54.05em; }
+.spin-col-10 { left: 67.95em; }
+.spin-col > .hud-txt { font-size: 1.4em; -webkit-text-stroke-width: 0.18em; }
+.spin-col > .spin-next { font-size: 1.1em; -webkit-text-stroke-width: 0.2em; font-variant-numeric: tabular-nums; }
+.hud .spin-btn { position: relative; width: 100%; height: 3.05em; display: flex; align-items: center; justify-content: center; gap: 0.55em; border-radius: 0.45em; border: 0.17em solid #141414 !important; background: linear-gradient(#6cff3a, #36e01a) !important; box-shadow: inset 0 -0.3em 0 rgba(0, 0, 0, 0.18), inset 0 0.16em 0 rgba(255, 255, 255, 0.45); }
+.spin-btn i { width: 1.85em; height: 1.85em; flex: none; }
+.spin-btn b { font-size: 1.55em; -webkit-text-stroke-width: 0.17em; }
+.spin-btn s { font-size: 1.35em; color: #fff; -webkit-text-stroke: 0.18em #d81e1e; text-decoration: none; position: relative; }
+.spin-btn s::after { content: ''; position: absolute; left: -0.1em; right: -0.1em; top: 50%; height: 0.16em; background: #e82020; transform: rotate(-14deg); border-radius: 0.1em; box-shadow: 0 0 0 0.05em #111; }
+.spin-count { position: absolute; right: -0.4em; top: -0.75em; z-index: 1; pointer-events: none; font-size: 1.35em; font-style: normal; -webkit-text-stroke-width: 0.2em; }
+.spin-count.is-up { animation: spin-up 0.5s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes spin-up { 0% { transform: scale(1); } 40% { transform: scale(1.7) rotate(-8deg); color: #ffe23a; } 100% { transform: scale(1); } }
+.spin-go::after { content: ''; position: absolute; top: 0; bottom: 0; width: 22%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent); transform: skewX(-20deg); animation: coach-shine 2.6s ease-in-out infinite; pointer-events: none; }
+.spin-go { overflow: hidden; }
+.hud .spin-go.is-empty { filter: saturate(0.55) brightness(0.92); }
+.spin-win.is-spinning .spin-btn { filter: saturate(0.4) brightness(0.85); pointer-events: none; }
+.spin-btn.is-no { animation: coach-no 0.45s ease; }
+.hud .spin-go.is-no { background: linear-gradient(#ff6a5a, #d62a2a) !important; }
+.spin-btn.is-nudge { animation: spin-nudge 0.6s cubic-bezier(0.3, 1.8, 0.5, 1) 0.15s; }
+@keyframes spin-nudge { 0%, 100% { transform: scale(1); } 40% { transform: scale(1.12); } }
+
+/* --- prize toast ------------------------------------------------------------------------------ */
+.spin-toast { position: absolute; left: 50%; top: 33%; z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 0.3em; transform: translateX(-50%); opacity: 0; pointer-events: none; }
+.spin-toast b { font-size: 4.2em; color: #ffd21a; -webkit-text-stroke: 0.16em #3a1a00; text-shadow: 0 0.06em 0 #7a3a00, 0 0 0.6em rgba(255, 200, 40, 0.6); }
+.spin-toast span { font-size: 1.9em; color: #5cff4a; -webkit-text-stroke: 0.18em #0d3006; }
+.spin-toast.is-boost b { color: #7af0ff; -webkit-text-stroke-color: #062a3a; text-shadow: 0 0.06em 0 #0a4a6a, 0 0 0.6em rgba(80, 220, 255, 0.6); }
+.spin-toast.is-pet b { font-size: 5em; background: linear-gradient(90deg, #ff3ad8, #ffe23a, #3aff8a, #3ad8ff, #a03aff); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 0.14em #1a0a2a; text-shadow: none; filter: drop-shadow(0 0 0.4em rgba(255, 255, 255, 0.6)); }
+.spin-toast.show { animation: spin-toast 2.4s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; }
+@keyframes spin-toast {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.3); }
+  12% { opacity: 1; transform: translateX(-50%) scale(1.12); }
+  22% { transform: translateX(-50%) scale(1); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-1.8em); }
+}
+
+/* --- coins flying to the counter (placed by the Web Animations in spinWheel.js) --------------- */
+.spin-coin { position: fixed; left: 0; top: 0; width: 2.6em; height: 2.6em; z-index: 5; pointer-events: none; filter: drop-shadow(0 0.15em 0.1em rgba(0, 0, 0, 0.4)); }
+
+/* --- running boosts under the counters -------------------------------------------------------- */
+.spin-boosts { position: absolute; left: 50%; top: 6.3em; transform: translateX(-50%); display: flex; gap: 0.5em; transition: opacity 0.15s ease; }
+.hud.spin-open .spin-boosts { opacity: 0; } /* the wheel's pointer sits there; the toast announces a new boost */
+.spin-chip { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; align-items: center; column-gap: 0.3em; padding: 0.25em 0.6em 0.3em 0.3em; border-radius: 0.6em; border: 0.16em solid #161b20; background: rgba(44, 56, 64, 0.72); animation: spin-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.spin-chip i { grid-row: span 2; width: 2.3em; height: 2.3em; }
+.spin-chip b { font-size: 1.15em; -webkit-text-stroke-width: 0.18em; font-variant-numeric: tabular-nums; }
+.spin-chip small { font-size: 0.75em; -webkit-text-stroke-width: 0.22em; color: #c8f0ff; }

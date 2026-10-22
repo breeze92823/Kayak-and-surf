@@ -1,0 +1,44 @@
+/* The Mutate window (hud/mutate.js): the egg window's panel, price and buttons (eggs.css) and the
+   Pet window's cards (pets.css); only the layout and the before -> after pair live here. */
+
+.hud.mut-open .hud-right, .hud.mut-open .hud-gift, .hud.mut-open.in-lane .hud-lane > *, .hud.mut-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+.mut { position: absolute; inset: 0; pointer-events: none; }
+.mut-prompt { z-index: 2; }
+
+.mut-win { position: absolute; left: 50%; top: 11em; width: 0; height: 0; opacity: 0; visibility: hidden; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.mut-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.mut-win.open .mut-panel { pointer-events: auto; }
+.mut-win.pop .mut-panel { animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.eggs-panel.mut-panel { height: 33em; }
+/* rainbow title */
+.mut-panel .eggs-title { background: linear-gradient(90deg, #ff5a5a, #ffd23a, #5aff7a, #5ac8ff, #c07aff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke-color: transparent; filter: drop-shadow(0 0.06em 0 #2a0a3a) drop-shadow(0 0 0.04em #2a0a3a); }
+
+/* left: before -> after, cost, Mutate */
+.mut-side { position: absolute; left: 0.9em; top: 5.6em; width: 20em; bottom: 0.9em; display: flex; flex-direction: column; align-items: center; gap: 0.55em; }
+.mut-side > :not(.mut-hint) { transition: opacity 0.15s ease; }
+.mut-side:not(.has-pick) > :not(.mut-hint) { opacity: 0; visibility: hidden; pointer-events: none; }
+.mut-pair { display: flex; align-items: center; gap: 0.4em; margin-top: 0.6em; }
+.mut-from .pets-card, .mut-to .pets-card { width: 8em; height: 8em; cursor: default; }
+.mut-from .pets-card:hover, .mut-to .pets-card:hover { transform: none; }
+.mut-arrow { width: 2.2em; height: 2.2em; animation: mut-nudge 1s ease-in-out infinite; }
+@keyframes mut-nudge { 0%, 100% { translate: 0; } 50% { translate: 0.3em; } }
+.mut-to .pets-card { box-shadow: 0 0 0 0.14em #111, 0 0 1.2em rgba(255, 255, 255, 0.55), inset 0 0 0 0.12em rgba(255, 255, 255, 0.55); }
+.mut-to.is-done .pets-card { animation: pets-up 0.7s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.mut-to.is-done .pets-card::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: mut-flash 1s ease-out forwards; }
+@keyframes mut-flash { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.95), 0 0 2em 1em rgba(255, 120, 255, 0.9); } 100% { box-shadow: 0 0 0 2em rgba(255, 255, 255, 0), 0 0 3em 2em rgba(120, 220, 255, 0); } }
+.mut-name { font-size: 1.9em; white-space: nowrap; -webkit-text-stroke-width: 0.14em; }
+.mut-cost b { font-size: 2.1em; }
+.mut-cost i { width: 2.6em; height: 2.6em; }
+.mut-go { margin-top: auto; margin-bottom: 0.3em; }
+.hud .eggs-btn.mut-go.is-spent { background: linear-gradient(90deg, #ff5a5a, #ffd23a, #5aff7a, #5ac8ff, #c07aff) !important; pointer-events: none; }
+.mut-hint { position: absolute; top: 40%; left: 0; right: 0; text-align: center; font-size: 1.4em; white-space: normal; -webkit-text-stroke-width: 0.18em; opacity: 0.85; }
+.mut-side.has-pick .mut-hint { display: none; }
+
+/* right: the pets that can go in */
+.mut-panel .mut-box { left: 21.75em; }
+.mut-grid { display: grid; grid-template-columns: repeat(4, 6.4em); justify-content: center; column-gap: 1.4em; row-gap: 1.1em; padding: 1em 0 1.5em; }
+.mut-grid .pets-card { animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.mut-empty { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 1.6em; text-align: center; white-space: pre; -webkit-text-stroke-width: 0.16em; opacity: 0.85; }
+
+.mut-toast { top: 30%; z-index: 7; }
+.mut-toast b { background: linear-gradient(90deg, #ff5a5a, #ffd23a, #5aff7a, #5ac8ff, #c07aff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }

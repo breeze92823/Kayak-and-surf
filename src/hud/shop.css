@@ -1,0 +1,138 @@
+/* The Kayak Shop window (hud/shop.js), laid out off the user's reference shot (1918x991, 1em = 16px).
+   Same em unit and outlined-text look as hud.css; the prompt, X, toast and coin jolt come from
+   coach.css. */
+
+/* while open, the right-hand column, the distance bar and the lane widgets step aside */
+.hud.shop-open .hud-right, .hud.shop-open .hud-dist, .hud.shop-open.in-lane .hud-lane > *, .hud.shop-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+.shop { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+.shop-win { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.shop-win.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.12s ease, visibility 0s; }
+.shop-win.pop .shop-panel { animation: coach-pop 0.4s cubic-bezier(0.25, 1.45, 0.45, 1) both; }
+.shop-win.pop .shop-tab { animation: shop-tab-in 0.42s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+.shop-win.pop .shop-tab:nth-child(2) { animation-delay: 0.05s; }
+.shop-win.pop .shop-tab:nth-child(3) { animation-delay: 0.1s; }
+.shop-win.pop .shop-tab:nth-child(4) { animation-delay: 0.15s; }
+@keyframes shop-tab-in { from { opacity: 0; transform: translateX(2.5em) scale(0.8); } to { opacity: 1; transform: none; } }
+
+.shop-panel { position: relative; width: 74.4em; height: 46.6em; box-sizing: border-box; border-radius: 1.3em; border: 0.22em solid rgba(255, 255, 255, 0.85); background: rgba(46, 30, 36, 0.86); box-shadow: 0 0 0 0.16em rgba(0, 0, 0, 0.55), 0 0.8em 2em rgba(0, 0, 0, 0.5); overflow: hidden; }
+.shop-head { position: absolute; left: 0; right: 0; top: 0; height: 5.75em; display: flex; align-items: center; padding-left: 2.75em; background: linear-gradient(rgba(150, 150, 154, 0.55), rgba(110, 110, 116, 0.55)); }
+.shop-title { font-size: 2.9em; -webkit-text-stroke-width: 0.13em; }
+
+/* category tabs, standing out to the left of the panel */
+.shop-tabs { position: absolute; right: calc(100% + 0.6em); top: 13.6em; display: flex; flex-direction: column; gap: 0.4em; }
+.hud .shop-tab { width: 9.2em; height: 4.5em; box-sizing: border-box; border-radius: 0.55em; border: 0.2em solid var(--edge) !important; background: linear-gradient(var(--hi), var(--lo)) !important; box-shadow: 0 0 0 0.12em rgba(0, 0, 0, 0.6), inset 0 -0.3em 0 rgba(0, 0, 0, 0.18); }
+.shop-tab .hud-txt { font-size: 2.1em; -webkit-text-stroke-width: 0.14em; }
+.hud .shop-tab:hover { transform: scale(1.04); }
+.hud .shop-tab:active { transform: scale(0.95); }
+.hud .shop-tab.is-on { border-color: #6aff4a !important; box-shadow: 0 0 0 0.12em rgba(0, 0, 0, 0.6), 0 0 0.9em rgba(106, 255, 74, 0.6), inset 0 -0.3em 0 rgba(0, 0, 0, 0.18); }
+.shop-tab-kayaks { --hi: #4fd06a; --lo: #2fae4e; --edge: #2a7a3a; }
+.shop-tab-trails { --hi: #2fb592; --lo: #1a8f76; --edge: #12614e; }
+.shop-tab-emotes { --hi: #9a4ae8; --lo: #7a2ad0; --edge: #4e1a8a; }
+.shop-tab-titles { --hi: #d4cc2a; --lo: #b2aa12; --edge: #6e6a0a; }
+
+/* the boat list */
+.shop-list { position: absolute; left: 0.75em; top: 5.95em; width: 49.75em; height: 39.75em; box-sizing: border-box; border-radius: 0.5em; border: 0.14em solid rgba(255, 255, 255, 0.55); background: rgba(20, 12, 16, 0.25); overflow: hidden; }
+.shop-grid { height: 100%; box-sizing: border-box; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 14.25em); grid-auto-rows: 14.4em; column-gap: 1.6em; row-gap: 1.4em; padding: 0.85em 0.8em; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.5) transparent; }
+.shop-grid::-webkit-scrollbar { width: 0.45em; }
+.shop-grid::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); border-radius: 0.3em; }
+.shop-soon { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); font-size: 3em; color: #ffd21a; -webkit-text-stroke: 0.14em #3a1a00; display: none; }
+.shop-list.is-soon .shop-grid { display: none; }
+.shop-list.is-soon .shop-soon { display: block; animation: coach-face 0.6s cubic-bezier(0.3, 1.8, 0.5, 1); }
+
+.hud .shop-card { position: relative; display: block; width: 100%; height: 100%; box-sizing: border-box; border-radius: 0.6em; border: 0.14em solid #1a1a1a !important; background: #ffffff !important; box-shadow: inset 0 -0.35em 0 rgba(0, 0, 0, 0.08); animation: coach-card-in 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) both; transition: transform 0.12s ease; }
+.shop-win:not(.pop) .shop-card { animation: none; }
+.hud .shop-card:hover { transform: translateY(-0.2em) scale(1.02); }
+.hud .shop-card:active { transform: scale(0.97); }
+.shop-card-name { position: absolute; left: 0; right: 0; top: 0.45em; text-align: center; font-size: 1.7em; -webkit-text-stroke-width: 0.17em; letter-spacing: -0.02em; }
+.shop-card-img { position: absolute; left: 0.6em; right: 0.6em; top: 2.5em; width: calc(100% - 1.2em); height: 8.6em; object-fit: contain; pointer-events: none; }
+.shop-card-img:not([src]), .shop-card-img[src=''] { visibility: hidden; }
+.shop-card-name.is-long { top: 0.55em; font-size: 1.2em; line-height: 1.05; white-space: normal; padding: 0 0.6em; -webkit-text-stroke-width: 0.2em; }
+.shop-card-icon { position: absolute; left: 2.3em; bottom: 0.45em; width: 3.1em; height: 3.1em; }
+.shop-card-stat { position: absolute; left: 2.75em; bottom: 0.55em; font-size: 2.45em; -webkit-text-stroke-width: 0.13em; letter-spacing: -0.02em; }
+.is-next .shop-card-icon, .is-locked .shop-card-icon { left: 2.1em; }
+.is-next .shop-card-stat, .is-locked .shop-card-stat { left: 2.25em; }
+.shop-card-check { position: absolute; right: -0.35em; top: -0.45em; width: 3.3em; height: 3.3em; transform: scale(0); transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.shop-card.is-equipped .shop-card-check { transform: scale(1); }
+.shop-card-lock { position: absolute; left: 50%; top: 4.2em; width: 5.2em; height: 5.2em; transform: translateX(-50%); display: none; filter: drop-shadow(0 0.15em 0.1em rgba(0, 0, 0, 0.45)); }
+/* locked: dark card, dimmed picture under a padlock */
+.hud .shop-card.is-locked { background: #3c3c40 !important; border-color: #141414 !important; box-shadow: inset 0 -0.35em 0 rgba(0, 0, 0, 0.2); }
+.shop-card.is-locked .shop-card-img { filter: brightness(0.55) saturate(0.8); }
+.shop-card.is-locked .shop-card-lock { display: block; }
+.hud .shop-card.is-picked { border-color: #ffb81a !important; box-shadow: 0 0 0 0.2em #ffd21a, 0 0 1em rgba(255, 210, 26, 0.6), inset 0 -0.35em 0 rgba(0, 0, 0, 0.08); }
+
+/* the picked boat */
+.shop-info { position: absolute; left: 51.3em; top: 5.95em; width: 22.4em; height: 39.75em; box-sizing: border-box; border-radius: 0.5em; border: 0.14em solid rgba(255, 255, 255, 0.55); background: rgba(20, 12, 16, 0.25); }
+.shop-info.is-soon > * { visibility: hidden; }
+.shop-info-pic { position: absolute; left: 4.15em; top: 1.05em; width: 13.9em; height: 13.9em; box-sizing: border-box; border-radius: 0.6em; border: 0.16em solid #1a1a1a; background: radial-gradient(circle at 50% 45%, #fff35a, #ffd800 70%, #f2c400); overflow: hidden; }
+.shop-info-pic img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.shop-info-pic img:not([src]), .shop-info-pic img[src=''] { visibility: hidden; }
+.shop-info-pic.is-in img { animation: coach-face 0.5s cubic-bezier(0.3, 1.8, 0.5, 1); }
+.shop-info-name { position: absolute; left: 0; right: 0; top: 6.6em; text-align: center; font-size: 2.6em; -webkit-text-stroke-width: 0.13em; letter-spacing: -0.02em; }
+.shop-info-row { position: absolute; left: 0; right: 0; height: 4em; }
+.shop-info-speed { top: 21.8em; }
+.shop-info-coaches { top: 27.25em; }
+.shop-info-row i { position: absolute; left: 2.75em; top: 0.3em; width: 3.4em; height: 3.4em; }
+.shop-info-row b { position: absolute; left: 4.16em; top: 50%; transform: translate(-50%, -50%); font-size: 3.1em; -webkit-text-stroke-width: 0.12em; }
+
+.hud .shop-btn { position: absolute; left: 1.1em; top: 33.4em; width: 20em; height: 4.6em; display: flex; align-items: center; justify-content: center; gap: 0.5em; border-radius: 0.6em; border: 0.17em solid #1a1a1a !important; box-shadow: inset 0 -0.45em 0 rgba(0, 0, 0, 0.18), inset 0 0.2em 0 rgba(255, 255, 255, 0.45); overflow: hidden; transition: transform 0.12s ease; }
+.hud .shop-btn:hover { transform: scale(1.04); }
+.hud .shop-btn:active { transform: scale(0.95); }
+.shop-btn i { width: 3em; height: 3em; flex: none; }
+.shop-btn b { font-size: 2.75em; -webkit-text-stroke-width: 0.13em; }
+.hud .shop-btn.is-buy { background: linear-gradient(#fff23a, #ffd000) !important; }
+.hud .shop-btn.is-equip { background: linear-gradient(#5cff32, #36e01a) !important; }
+.hud .shop-btn.is-equipped { background: linear-gradient(#6ac8ff, #3aa2f2) !important; cursor: default; }
+.hud .shop-btn.is-hidden { display: none; }
+.hud .shop-btn.is-equipped:hover { transform: none; }
+.shop-btn.is-buy::after, .shop-btn.is-equip::after { content: ''; position: absolute; top: 0; bottom: 0; width: 25%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent); transform: skewX(-20deg); animation: coach-shine 3s ease-in-out infinite; pointer-events: none; }
+.shop-btn.is-no { animation: coach-no 0.45s ease; }
+.hud .shop-btn.is-no { background: linear-gradient(#ff6a5a, #d62a2a) !important; }
+.shop-btn.is-done { animation: coach-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+
+/* celebrations on the card: bought (gold flash), equipped (green pulse), refused (shake) */
+.shop-card.is-new, .shop-card.is-on { animation: coach-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.shop-card.is-new::after, .shop-card.is-on::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: coach-flash 0.9s ease-out forwards; }
+.shop-card.is-on::after { --flash: 92, 255, 74; }
+.shop-card.is-no { animation: coach-no 0.45s ease; }
+
+/* --- Trails and Emotes tabs ("Trails Shop" / "Emotes Shop", the user's shots): the list and info panel give way to one
+   wide 3-column grid of dark glass cards ------------------------------------------------------- */
+.shop-items { display: none; position: absolute; left: 0.55em; right: 0.3em; top: 6em; bottom: 0.4em; overflow-x: hidden; overflow-y: auto; grid-template-columns: repeat(3, 23.2em); grid-auto-rows: 17.8em; column-gap: 1em; row-gap: 0.9em; padding-right: 0.4em; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.5) transparent; }
+.shop-items::-webkit-scrollbar { width: 0.45em; }
+.shop-items::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.5); border-radius: 0.3em; }
+.shop-panel[data-tab='trails'] .shop-items[data-kind='trails'], .shop-panel[data-tab='emotes'] .shop-items[data-kind='emotes'] { display: grid; }
+.shop-panel:is([data-tab='trails'], [data-tab='emotes']) .shop-list, .shop-panel:is([data-tab='trails'], [data-tab='emotes']) .shop-info { display: none; }
+
+.item-card { position: relative; box-sizing: border-box; border-radius: 0.5em; border: 0.13em solid rgba(255, 255, 255, 0.85); background: rgba(10, 6, 8, 0.32); animation: coach-card-in 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.shop-win:not(.pop) .item-card { animation: none; }
+.item-art { position: absolute; left: 50%; top: 2.6em; width: 7.6em; height: 7.6em; transform: translateX(-50%); filter: drop-shadow(0 0.2em 0.25em rgba(0, 0, 0, 0.45)); }
+.item-card.is-equipped .item-art { animation: item-bob 1.8s ease-in-out infinite; }
+@keyframes item-bob { 0%, 100% { transform: translateX(-50%) rotate(0); } 50% { transform: translateX(-50%) translateY(-0.25em) rotate(-4deg); } }
+.item-name { position: absolute; left: 0; right: 0; top: 7.95em; text-align: center; font-size: 1.5em; -webkit-text-stroke-width: 0.17em; transform: translateY(-50%); }
+.hud .item-btn { position: absolute; left: 2em; top: 14.25em; width: 19.1em; height: 3.4em; display: flex; align-items: center; justify-content: center; gap: 0.6em; border-radius: 0.45em; border: 0.14em solid #1a1a1a !important; box-shadow: inset 0 -0.35em 0 rgba(0, 0, 0, 0.2), inset 0 0.16em 0 rgba(255, 255, 255, 0.35); overflow: hidden; transition: transform 0.12s ease; }
+.hud .item-btn:hover { transform: scale(1.04); }
+.hud .item-btn:active { transform: scale(0.95); }
+.item-btn i { width: 2.3em; height: 2.3em; flex: none; }
+.item-btn b { font-size: 1.75em; -webkit-text-stroke-width: 0.15em; }
+.hud .is-equipped .item-btn { background: linear-gradient(#ff3a3a, #e01818) !important; }
+.hud .is-owned .item-btn { background: linear-gradient(#5cff32, #36e01a) !important; }
+.hud .is-next .item-btn { background: linear-gradient(#20c4ff, #0a9ef0) !important; }
+.is-next .item-btn::after, .is-owned .item-btn::after { content: ''; position: absolute; top: 0; bottom: 0; width: 25%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); animation: coach-shine 3s ease-in-out infinite; pointer-events: none; }
+/* locked: only a padlock on a darker inset */
+.item-lock { display: none; position: absolute; left: 1.15em; right: 1.15em; top: 1.75em; bottom: 0; border-radius: 2.2em 2.2em 0.4em 0.4em; background: rgba(0, 0, 0, 0.42); }
+.item-lock i { position: absolute; left: 50%; top: 2.1em; width: 7em; height: 7em; transform: translateX(-50%); filter: drop-shadow(0 0.2em 0.15em rgba(0, 0, 0, 0.5)); }
+.item-card.is-locked .item-lock { display: block; }
+.item-card.is-locked .item-art, .item-card.is-locked .item-name, .item-card.is-locked .item-btn { display: none; }
+/* celebrations: bought (gold flash), equipped (green pulse), refused (shake) */
+.item-card.is-new, .item-card.is-on { animation: coach-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.item-card.is-new::after, .item-card.is-on::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: coach-flash 0.9s ease-out forwards; }
+.item-card.is-on::after { --flash: 92, 255, 74; }
+.item-card.is-no { animation: coach-no 0.45s ease; }
+.hud .item-card.is-no .item-btn { background: linear-gradient(#ff6a5a, #d62a2a) !important; }
+/* the trophy counter jolts when trophies are spent on a trail or emote */
+.hud-counter-trophy.spend { animation: coach-spend 0.45s ease; }
+/* an emote card's picture: the player figure mid emote */
+.item-art-emotes { top: 1.2em; width: 9.4em; height: 9.4em; }
+.item-art-emotes img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.item-art-emotes img:not([src]), .item-art-emotes img[src=''] { visibility: hidden; }

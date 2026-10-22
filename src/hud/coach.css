@@ -1,0 +1,101 @@
+/* The Coach: proximity prompt, Coach window and toast (hud/coach.js). Same em unit and outlined-text
+   look as hud.css; the window is laid out off the user's reference shot (1917x991, 1em = 16px). */
+
+/* --- proximity prompt, pinned beside the Coach by coach.js ---------------------------------- */
+.hud .coach-prompt { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 0.7em; padding: 0.55em 1.1em 0.55em 0.6em; border-radius: 0.8em; background: rgba(18, 20, 26, 0.78) !important; box-shadow: 0 0.2em 0.6em rgba(0, 0, 0, 0.35); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.18s ease, visibility 0s 0.18s; }
+.hud .coach-prompt.show { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.18s ease, visibility 0s; }
+.hud .coach-prompt:hover, .hud .coach-prompt:active { transform: none; }
+.coach-prompt.show .coach-key { animation: coach-key-in 0.35s cubic-bezier(0.3, 1.6, 0.5, 1) both, coach-key-bob 1.6s ease-in-out 0.35s infinite; }
+.coach-key { display: grid; place-items: center; width: 2.4em; height: 2.4em; box-sizing: border-box; border: 0.17em solid #fff; border-radius: 0.45em; font-size: 1.4em; font-weight: 700; color: #fff; background: rgba(255, 255, 255, 0.08); }
+.coach-prompt-txt { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; color: #fff; text-shadow: 0 0.08em 0.15em rgba(0, 0, 0, 0.6); }
+.coach-prompt-txt small { font-size: 1.05em; color: #c8d0dc; }
+.coach-prompt-txt b { font-size: 1.6em; }
+@keyframes coach-key-in { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes coach-key-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.12em); } }
+
+/* --- while the window is open: the game blurred behind, only wins + coins left on the HUD ----- */
+.coach-backdrop { position: fixed; inset: 0; opacity: 0; visibility: hidden; pointer-events: none; background: rgba(12, 18, 34, 0.28); -webkit-backdrop-filter: blur(7px) saturate(1.1); backdrop-filter: blur(7px) saturate(1.1); transition: opacity 0.22s ease, visibility 0s 0.22s; }
+.hud.coach-open .coach-backdrop { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.22s ease, visibility 0s; }
+.hud > *:not(.hud-tc):not(.coach) { transition: opacity 0.2s ease, visibility 0s 0.2s; }
+.hud.coach-open > *:not(.hud-tc):not(.coach) { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+.hud.coach-open .hud-tc { z-index: 3; }
+.coach { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+/* --- the window ----------------------------------------------------------------------------- */
+.coach-win { position: absolute; left: 50%; top: 52.5%; transform: translate(-50%, -50%); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.coach-win.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.12s ease, visibility 0s; }
+.coach-win.pop .coach-panel { animation: coach-pop 0.4s cubic-bezier(0.25, 1.45, 0.45, 1) both; }
+@keyframes coach-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+.coach-panel { width: 74.5em; height: 46.6em; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 1.3em; border: 0.22em solid rgba(255, 255, 255, 0.85); background: rgba(46, 30, 36, 0.86); box-shadow: 0 0 0 0.16em rgba(0, 0, 0, 0.55), 0 0.8em 2em rgba(0, 0, 0, 0.5); overflow: hidden; }
+.coach-head { position: relative; flex: none; display: flex; align-items: center; height: 5.1em; padding: 0 0.5em 0 2.8em; background: linear-gradient(rgba(150, 150, 154, 0.85), rgba(118, 118, 122, 0.85)); box-shadow: 0 0.2em 0 rgba(0, 0, 0, 0.25); }
+.coach-title { font-size: 2.9em; -webkit-text-stroke-width: 0.13em; }
+.coach-slots { margin-left: auto; margin-right: 6em; display: grid; place-items: center; width: 9.8em; height: 1.95em; border-radius: 0.2em; background: rgba(205, 205, 210, 0.85); font-size: 1.6em; -webkit-text-stroke-width: 0.14em; }
+.coach-slots.is-no { animation: coach-no 0.45s ease; background: rgba(255, 90, 80, 0.9); }
+.hud .coach-x { position: absolute; right: 0.55em; top: 0.4em; width: 4.2em; height: 4.2em; padding: 0.75em; box-sizing: border-box; border-radius: 0.6em; border: 0.24em solid #fff !important; background: linear-gradient(#f43a30, #d81e1e) !important; box-shadow: 0 0 0 0.14em #2a0606, inset 0 -0.3em 0 rgba(0, 0, 0, 0.2); }
+
+.coach-grid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 18.6em; gap: 0.75em; padding: 0.75em 0.9em 0.9em 0.55em; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.45) transparent; }
+.coach-grid::-webkit-scrollbar { width: 0.45em; }
+.coach-grid::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.45); border-radius: 0.3em; }
+
+/* a card: portrait (rarity colour) + name, "Effect:" and its lines, the button along the bottom */
+.coach-card { position: relative; border-radius: 0.55em; border: 0.15em solid rgba(255, 255, 255, 0.92); background: rgba(30, 18, 22, 0.45); animation: coach-card-in 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.coach-win:not(.pop) .coach-card { animation: none; }
+@keyframes coach-card-in { from { opacity: 0; transform: translateY(1em) scale(0.92); } to { opacity: 1; transform: none; } }
+.coach-card-face { position: absolute; left: 0.55em; top: 1.6em; width: 8.2em; height: 8.2em; box-sizing: border-box; border-radius: 0.55em; border: 0.14em solid #141414; overflow: hidden; background: var(--rarity); }
+.coach-card-face img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.coach-card-face img:not([src]), .coach-card-face img[src=''] { visibility: hidden; }
+.rarity-common { --rarity: linear-gradient(#7cf09a, #2fbf5a); }
+.rarity-rare { --rarity: linear-gradient(#3ab8ff, #1a6aff); }
+.rarity-epic { --rarity: linear-gradient(#c070ff, #6a20d8); }
+.rarity-legendary { --rarity: linear-gradient(#fff23a 10%, #ffb02a 70%, #ff7a5a); }
+.rarity-mythic { --rarity: linear-gradient(#ff5a6a, #ff3ad0 50%, #5a2aff); }
+.rarity-event { --rarity: conic-gradient(from 200deg at 50% 60%, #ff3a3a, #ffd23a, #3aff6a, #3ad8ff, #6a3aff, #ff3ad8, #ff3a3a); }
+.coach-card-name { position: absolute; left: 0.55em; top: 10.05em; width: 8.2em; text-align: center; white-space: normal; font-size: 1em; line-height: 1.05; -webkit-text-stroke-width: 0.22em; }
+.coach-card-label { position: absolute; left: 4.66em; top: 0.62em; font-size: 2.05em; color: #33e8ff; -webkit-text-stroke: 0.13em #0a2a3a; }
+.coach-card-effects { position: absolute; left: 9.55em; top: 4.35em; display: flex; flex-direction: column; gap: 0.12em; }
+.coach-card-effects .hud-txt { font-size: 2em; -webkit-text-stroke-width: 0.13em; letter-spacing: -0.01em; }
+.coach-card-tag { position: absolute; left: -0.4em; top: -0.55em; padding: 0.2em 0.5em; border-radius: 0.4em; background: #2fd02a; border: 0.12em solid #0d3006; font-size: 0.9em; -webkit-text-stroke-width: 0.2em; transform: rotate(-8deg) scale(0); transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.coach-card.is-equipped { border-color: #5cff4a; box-shadow: 0 0 0.8em rgba(92, 255, 74, 0.55), inset 0 0 1.2em rgba(92, 255, 74, 0.18); }
+.coach-card.is-equipped .coach-card-tag { transform: rotate(-8deg) scale(1); }
+
+.hud .coach-btn { position: absolute; left: 50%; bottom: 0.95em; width: 19.4em; height: 3.55em; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; gap: 0.7em; border-radius: 0.55em; border: 0.17em solid #141414 !important; box-shadow: inset 0 -0.35em 0 rgba(0, 0, 0, 0.2), inset 0 0.18em 0 rgba(255, 255, 255, 0.35); overflow: hidden; }
+.hud .coach-btn:hover { transform: translateX(-50%) scale(1.04); }
+.hud .coach-btn:active { transform: translateX(-50%) scale(0.95); }
+.coach-btn i { width: 2.3em; height: 2.3em; flex: none; }
+.coach-btn b { font-size: 1.9em; -webkit-text-stroke-width: 0.14em; }
+.hud .coach-btn.is-buy { background: linear-gradient(#20c4ff, #0aa2f0) !important; }
+.hud .coach-btn.is-equip { background: linear-gradient(#5cff32, #36e01a) !important; }
+.hud .coach-btn.is-off { background: linear-gradient(#ff6a4a, #e0301e) !important; }
+.hud .coach-btn.is-locked { background: linear-gradient(#9aa3ad, #78818b) !important; cursor: default; }
+.hud .coach-btn.is-locked:hover { transform: translateX(-50%); }
+.coach-btn.is-buy::after, .coach-btn.is-equip::after { content: ''; position: absolute; top: 0; bottom: 0; width: 25%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); animation: coach-shine 3s ease-in-out infinite; }
+@keyframes coach-shine { 0%, 65% { left: -40%; } 100% { left: 120%; } }
+
+/* celebrations: bought (gold flash, portrait bounce), equipped (green pulse), refused (shake) */
+.coach-card.is-new, .coach-card.is-on { animation: coach-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.coach-card.is-new::after, .coach-card.is-on::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: coach-flash 0.9s ease-out forwards; }
+.coach-card.is-on::after { --flash: 92, 255, 74; }
+.coach-card.is-new .coach-card-face { animation: coach-face 0.7s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes coach-up { 0% { transform: scale(1); } 30% { transform: scale(1.06) rotate(-1deg); } 60% { transform: scale(0.98) rotate(0.5deg); } 100% { transform: scale(1); } }
+@keyframes coach-flash { 0% { box-shadow: 0 0 0 0 rgba(var(--flash, 255, 214, 50), 0.95), inset 0 0 2.5em rgba(var(--flash, 255, 240, 160), 0.9); } 100% { box-shadow: 0 0 0 1.4em rgba(var(--flash, 255, 214, 50), 0), inset 0 0 2.5em rgba(var(--flash, 255, 240, 160), 0); } }
+@keyframes coach-face { 0% { transform: scale(1); } 40% { transform: scale(1.18) rotate(-5deg); } 100% { transform: scale(1); } }
+.coach-card.is-no { animation: coach-no 0.45s ease; }
+.hud .coach-card.is-no .coach-btn { background: linear-gradient(#ff6a5a, #d62a2a) !important; }
+@keyframes coach-no { 0%, 100% { translate: 0; } 20% { translate: -0.7em; } 40% { translate: 0.6em; } 60% { translate: -0.4em; } 80% { translate: 0.2em; } }
+
+/* --- toast ---------------------------------------------------------------------------------- */
+.coach-toast { position: absolute; left: 50%; top: 38%; z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 0.3em; transform: translateX(-50%); opacity: 0; pointer-events: none; }
+.coach-toast b { font-size: 4.4em; color: #ffd21a; -webkit-text-stroke: 0.16em #3a1a00; text-shadow: 0 0.06em 0 #7a3a00, 0 0 0.6em rgba(255, 200, 40, 0.6); }
+.coach-toast span { font-size: 1.9em; color: #5cff4a; -webkit-text-stroke: 0.18em #0d3006; white-space: pre; }
+.coach-toast.show { animation: coach-toast 2.1s cubic-bezier(0.2, 1.4, 0.4, 1) forwards; }
+@keyframes coach-toast {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.3); }
+  14% { opacity: 1; transform: translateX(-50%) scale(1.12); }
+  24% { transform: translateX(-50%) scale(1); }
+  78% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-1.8em); }
+}
+
+/* the coin counter jolts when coins are spent */
+.hud-counter-coin.spend { animation: coach-spend 0.45s ease; }
+@keyframes coach-spend { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.12) rotate(-2deg); } 60% { transform: scale(0.96) rotate(1deg); } }

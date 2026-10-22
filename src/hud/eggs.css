@@ -1,0 +1,112 @@
+/* Egg window and hatch overlay (hud/eggs.js): the Pet window's glass panel, buttons and rarity
+   colours (pets.css), same em unit as hud.css. Positions are offsets from the screen centre. */
+
+/* while open, the right-hand HUD column and the lane widgets step aside (counters stay) */
+.hud.eggs-open .hud-right, .hud.eggs-open .hud-gift, .hud.eggs-open.in-lane .hud-lane > *, .hud.eggs-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+/* while hatching, only the counters and the overlay */
+.hud.eggs-hatching > *:not(.hud-tc):not(.eggs) { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; transition: opacity 0.2s ease, visibility 0s 0.2s; }
+.hud.eggs-hatching .hud-tc { z-index: 6; }
+.hud.eggs-hatching .eggs-win { opacity: 0; pointer-events: none; }
+.eggs { position: absolute; inset: 0; pointer-events: none; }
+.eggs-prompt { z-index: 2; }
+
+.eggs-win { position: absolute; left: 50%; top: 11em; width: 0; height: 0; opacity: 0; visibility: hidden; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.eggs-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.eggs-win.open .eggs-panel, .eggs-win.open .eggs-bar { pointer-events: auto; }
+.eggs-win.pop .eggs-panel { animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.eggs-win.pop .eggs-bar { animation: pets-rise 0.42s 0.06s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+
+.eggs-panel { position: absolute; left: -29em; top: 0; width: 58em; height: 30em; box-sizing: border-box; border-radius: 0.7em; border: 0.2em solid rgba(255, 255, 255, 0.92);
+  background: rgba(40, 32, 34, 0.62); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); box-shadow: 0 0.5em 1.6em rgba(0, 0, 0, 0.35); transform-origin: 50% 45%; }
+.eggs-head { position: relative; height: 4.6em; border-radius: 0.5em 0.5em 0 0; background: rgba(80, 74, 72, 0.5); }
+.eggs-title { position: absolute; left: 1.2em; top: 50%; transform: translateY(-45%); font-size: 2.6em; -webkit-text-stroke-width: 0.14em; white-space: nowrap; }
+.hud .eggs-x { position: absolute; right: 0.55em; top: 0.55em; width: 3.6em; height: 3.6em; padding: 0.7em; box-sizing: border-box; border-radius: 0.55em; border: 0.2em solid #fff !important;
+  background: linear-gradient(#ff3a3a, #d40e0e) !important; box-shadow: 0 0 0 0.14em #2a0000, inset 0 0.2em 0 rgba(255, 255, 255, 0.35); }
+
+/* left: the egg, its price and the coins you have */
+.eggs-side { position: absolute; left: 0.9em; top: 5.6em; width: 14em; bottom: 0.9em; display: flex; flex-direction: column; align-items: center; gap: 0.5em; }
+.eggs-face { position: relative; width: 12em; height: 12em; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 240, 180, 0.55), rgba(255, 200, 80, 0) 75%); }
+.eggs-face img { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 0.2em 0.15em rgba(0, 0, 0, 0.35)); animation: eggs-bob 2.4s ease-in-out infinite; }
+.eggs-face img:not([src]) { visibility: hidden; }
+@keyframes eggs-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-0.4em) rotate(3deg); } }
+.eggs-price { display: flex; align-items: center; gap: 0.25em; }
+.eggs-price i { width: 3em; height: 3em; }
+.eggs-price b { font-size: 2.5em; color: #ffd21a; -webkit-text-stroke-width: 0.13em; }
+.eggs-price.is-no { animation: pets-no 0.45s ease; }
+.eggs-have { font-size: 1.2em; -webkit-text-stroke-width: 0.18em; opacity: 0.9; }
+.eggs-have.is-short { color: #ff6a5a; }
+
+/* right: what it hatches */
+.eggs-box { position: absolute; left: 15.75em; right: 0.9em; top: 5.6em; bottom: 0.9em; box-sizing: border-box; border-radius: 0.5em; border: 0.14em solid rgba(255, 255, 255, 0.75); background: rgba(0, 0, 0, 0.14);
+  overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.7) transparent; overscroll-behavior: contain; }
+.eggs-grid { display: grid; grid-template-columns: repeat(5, 6.4em); justify-content: center; column-gap: 1.4em; row-gap: 2.2em; padding: 1em 0 2em; }
+.eggs-grid .eggs-card { animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.eggs-grid.is-one { grid-template-columns: 12em; padding-top: 2em; }
+.eggs-grid.is-one .eggs-card { width: 12em; height: 12em; }
+.eggs-card { position: relative; width: 6.4em; height: 6.6em; box-sizing: border-box; border-radius: 0.45em; border: 0.15em solid #141414; background: var(--rar); box-shadow: inset 0 0 0 0.12em rgba(255, 255, 255, 0.55), inset 0 -0.4em 0 rgba(0, 0, 0, 0.14); }
+.eggs-card img { position: absolute; left: 6%; top: 2%; width: 88%; height: 80%; object-fit: contain; filter: drop-shadow(0 0.12em 0.1em rgba(0, 0, 0, 0.35)); pointer-events: none; }
+.eggs-card img:not([src]) { visibility: hidden; }
+.eggs-mult { position: absolute; left: 0.2em; bottom: 0.15em; display: flex; align-items: center; gap: 0.1em; pointer-events: none; }
+.eggs-mult i { width: 1.4em; height: 1.4em; flex: none; }
+.eggs-mult b { font-size: 1.05em; -webkit-text-stroke-width: 0.2em; letter-spacing: -0.02em; }
+.eggs-chance { position: absolute; left: 50%; top: 100%; transform: translate(-50%, 0.2em); font-size: 1.15em; white-space: nowrap; -webkit-text-stroke-width: 0.2em; }
+.eggs-grid.is-one .eggs-mult { font-size: 1.6em; }
+.eggs-grid.is-one .eggs-chance { font-size: 1.7em; top: auto; bottom: -3.4em; }
+.eggs-card-name { position: absolute; left: 50%; top: 100%; transform: translate(-50%, 0.25em); font-size: 2em; white-space: nowrap; -webkit-text-stroke-width: 0.14em; }
+
+/* bottom bar: Open 1 / Open 3 / Auto, or Buy for a pet sold outright */
+.eggs-bar { position: absolute; left: -20em; top: 30.3em; width: 40em; height: 3.4em; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 1.2em; padding: 0 0.95em; border-radius: 0.6em; border: 0.2em solid #141414; background: rgba(40, 34, 36, 0.82); }
+.hud .eggs-btn { position: relative; width: 10.5em; height: 2.5em; flex: none; display: flex; align-items: center; justify-content: center; gap: 0.5em; box-sizing: border-box; border-radius: 0.45em; border: 0.15em solid #141414 !important; box-shadow: inset 0 -0.3em 0 rgba(0, 0, 0, 0.18), inset 0 0.15em 0 rgba(255, 255, 255, 0.4); }
+.eggs-btn b { font-size: 1.25em; -webkit-text-stroke-width: 0.2em; }
+.eggs-btn kbd { display: grid; place-items: center; width: 1.5em; height: 1.5em; border-radius: 0.3em; border: 0.12em solid #fff; font: 700 0.95em Fredoka, system-ui, sans-serif; color: #fff; background: rgba(0, 0, 0, 0.25); }
+.hud .eggs-btn.is-one, .hud .eggs-btn.is-buy { background: linear-gradient(#5cff4a, #22d02a) !important; }
+.hud .eggs-btn.is-many { background: linear-gradient(#5ac8ff, #1a72ff) !important; }
+.hud .eggs-btn.is-auto { background: linear-gradient(#b8b8be, #84848c) !important; }
+.hud .eggs-bar.is-auto .eggs-btn.is-auto { background: linear-gradient(#ffd23a, #ff8a14) !important; animation: pets-pulse 1s ease-in-out infinite; }
+.eggs-btn.is-no { animation: pets-no 0.45s ease; }
+.eggs-btn.is-buy, .eggs-win.is-pet .eggs-btn:not(.is-buy) { display: none !important; }
+.eggs-win.is-pet .eggs-btn.is-buy { display: flex !important; }
+
+/* --- hatch overlay ------------------------------------------------------------------------- */
+.eggs-hatch { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: radial-gradient(circle at 50% 50%, rgba(20, 16, 30, 0.35), rgba(8, 6, 14, 0.82));
+  opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.2s ease, visibility 0s 0.2s; }
+.eggs-hatch.show { opacity: 1; visibility: visible; pointer-events: auto; cursor: pointer; transition: opacity 0.15s ease, visibility 0s; }
+.eggs-hatch.flash::after { content: ''; position: absolute; inset: 0; background: #fff; pointer-events: none; animation: eggs-flash 0.5s ease-out forwards; }
+@keyframes eggs-flash { from { opacity: 0.95; } to { opacity: 0; } }
+.eggs-hatch-row { display: flex; gap: 6em; align-items: center; }
+.eggs-hatch-hint { position: absolute; bottom: 3em; left: 50%; transform: translateX(-50%); font-size: 1.3em; opacity: 0.7; -webkit-text-stroke-width: 0.18em; }
+.eggs-slot { position: relative; width: 16em; height: 22em; display: grid; place-items: center; }
+.eggs-egg { position: absolute; width: 14em; height: 14em; }
+.eggs-egg img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0.4em 0.3em rgba(0, 0, 0, 0.45)); }
+.eggs-hatch.show:not(.reveal) .eggs-egg { animation: eggs-drop 0.45s calc(var(--i) * 0.08s) cubic-bezier(0.3, 1.5, 0.5, 1) both, eggs-shake var(--shake) calc(var(--i) * 0.08s) ease-in both; }
+@keyframes eggs-drop { from { transform: translateY(-6em) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+/* the shake grows: small rocks first, wild at the end */
+@keyframes eggs-shake {
+  0%, 20% { rotate: 0deg; } 25% { rotate: -6deg; } 30% { rotate: 6deg; } 35% { rotate: 0deg; }
+  45% { rotate: -10deg; } 50% { rotate: 10deg; } 55% { rotate: 0deg; }
+  62% { rotate: -14deg; scale: 1.04; } 67% { rotate: 14deg; } 72% { rotate: -14deg; } 77% { rotate: 14deg; scale: 1.08; }
+  82% { rotate: -18deg; } 86% { rotate: 18deg; } 90% { rotate: -20deg; scale: 1.14; } 94% { rotate: 20deg; } 97% { rotate: -22deg; } 100% { rotate: 0deg; scale: 1.2; }
+}
+.eggs-hatch.reveal .eggs-egg { animation: eggs-pop-out 0.3s ease-out forwards; }
+@keyframes eggs-pop-out { to { transform: scale(1.6); opacity: 0; } }
+.eggs-burst { position: absolute; width: 4em; height: 4em; border-radius: 50%; opacity: 0; }
+.eggs-hatch.reveal .eggs-burst { animation: eggs-burst 0.6s ease-out; }
+@keyframes eggs-burst { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.95), 0 0 3em 1em rgba(255, 240, 160, 0.9); } 100% { opacity: 0; box-shadow: 0 0 0 9em rgba(255, 255, 255, 0), 0 0 6em 4em rgba(255, 240, 160, 0); } }
+.eggs-out { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.35em; opacity: 0; transform: scale(0.3); }
+.eggs-hatch.reveal .eggs-out { animation: eggs-out 0.55s calc(var(--i) * 0.1s) cubic-bezier(0.25, 1.6, 0.45, 1) both; }
+@keyframes eggs-out { from { opacity: 0; transform: scale(0.3) rotate(-8deg); } to { opacity: 1; transform: none; } }
+.eggs-out .eggs-card { width: 11em; height: 11em; }
+.eggs-out .eggs-card .pets-tag { font-size: 1.3em; left: 0.3em; top: 0.2em; }
+.eggs-out .eggs-mult { position: static; font-size: 1.5em; }
+.eggs-out-name { font-size: 2.2em; white-space: nowrap; -webkit-text-stroke-width: 0.14em; }
+.eggs-out-rarity { font-size: 1.5em; white-space: nowrap; -webkit-text-stroke-width: 0.16em; }
+.eggs-new { position: absolute; right: -0.6em; top: -0.8em; font-size: 1.8em; color: #5cff4a; rotate: 12deg; -webkit-text-stroke-width: 0.16em; animation: eggs-new 0.9s ease-in-out infinite; z-index: 2; }
+@keyframes eggs-new { 0%, 100% { scale: 1; } 50% { scale: 1.15; } }
+/* rays behind Rare and up, in the rarity's colours, turning */
+.eggs-rays { position: absolute; left: 50%; top: 5.5em; width: 30em; height: 30em; margin: -15em 0 0 -15em; border-radius: 50%; display: none; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.5) 0deg 9deg, transparent 9deg 22.5deg), var(--rar);
+  -webkit-mask: radial-gradient(closest-side, #000 20%, transparent 100%); mask: radial-gradient(closest-side, #000 20%, transparent 100%); opacity: 0.75; animation: eggs-spin 7s linear infinite; }
+.eggs-out.has-rays .eggs-rays { display: block; }
+@keyframes eggs-spin { to { rotate: 360deg; } }
+
+.eggs-toast { top: 30%; z-index: 7; }

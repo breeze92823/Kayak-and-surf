@@ -1,0 +1,80 @@
+/* The Daily Rewards window (hud/daily.js): the egg window's glass panel, head and X (eggs.css), the
+   Pet window's rarity colours and keyframes (pets.css), coach.css's toast; same em unit as hud.css. */
+
+/* the HUD button's red badge while a day is ready (hud state `daily`) */
+.hud-round { position: relative; }
+.hud-round .hud-badge svg { width: 100%; height: 100%; }
+.hud-round .hud-badge { top: -0.45em; right: -0.45em; }
+.hud-daily:not(.is-ready) .hud-badge { display: none; }
+
+/* while open, the right-hand HUD column and the lane widgets step aside (counters stay) */
+.hud.daily-open .hud-right, .hud.daily-open.in-lane .hud-lane > *, .hud.daily-open.in-lane .hud-lane button { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.15s ease, visibility 0s 0.15s; }
+.daily { position: absolute; inset: 0; pointer-events: none; }
+
+.daily-win { position: absolute; left: 50%; top: 12em; width: 0; height: 0; opacity: 0; visibility: hidden; transition: opacity 0.16s ease, visibility 0s 0.16s; }
+.daily-win.open { opacity: 1; visibility: visible; transition: opacity 0.12s ease, visibility 0s; }
+.daily-win.open .daily-panel { pointer-events: auto; }
+.daily-win.pop .daily-panel { animation: pets-pop 0.4s cubic-bezier(0.25, 1.5, 0.45, 1) both; }
+.eggs-panel.daily-panel { height: 26em; }
+.daily-head-art { position: absolute; left: 0.7em; top: 50%; width: 3.7em; height: 3.7em; transform: translateY(-52%); filter: drop-shadow(0 0.12em 0.08em rgba(0, 0, 0, 0.4)); }
+.daily-head-art svg { width: 100%; height: 100%; }
+.daily-panel .eggs-title { left: 1.85em; }
+
+/* the seven days; Day 7 a little wider */
+.daily-days { position: absolute; left: 0.9em; right: 0.9em; top: 5.6em; height: 16.6em; display: grid; grid-template-columns: repeat(6, 1fr) 1.3fr; gap: 0.6em; }
+.hud .daily-card { position: relative; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; padding-top: 0.55em; border-radius: 0.55em; border: 0.15em solid rgba(255, 255, 255, 0.78); background: rgba(0, 0, 0, 0.22); cursor: default; }
+.daily-win.pop .daily-card { animation: pets-card-in 0.3s cubic-bezier(0.3, 1.4, 0.5, 1) both; }
+.hud .daily-card:not(.is-ready):hover { transform: none; }
+.daily-day { font-size: 1.35em; -webkit-text-stroke-width: 0.18em; }
+.daily-art { display: grid; place-items: center; width: 5.2em; height: 5.2em; margin-top: 0.45em; filter: drop-shadow(0 0.14em 0.1em rgba(0, 0, 0, 0.35)); }
+.daily-art svg { width: 100%; height: 100%; }
+.daily-art img { width: 100%; height: 100%; object-fit: contain; }
+.daily-art img:not([src]) { visibility: hidden; }
+.daily-art[class*=' r-'] { box-sizing: border-box; border-radius: 0.5em; border: 0.14em solid #141414; background: var(--rar); box-shadow: inset 0 0 0 0.12em rgba(255, 255, 255, 0.55); }
+.daily-amt { margin-top: 0.3em; font-size: 1.75em; -webkit-text-stroke-width: 0.15em; }
+.k-coins .daily-amt { color: #ffd21a; }
+.k-trophies .daily-amt { color: #ffe86a; }
+.k-spins .daily-amt { color: #ff8ae0; }
+.k-boost .daily-amt { color: #5ad8ff; }
+.k-pet .daily-amt { color: #c88aff; }
+.daily-name { margin-top: 0.2em; font-size: 1em; -webkit-text-stroke-width: 0.22em; }
+
+/* Day 7: gold */
+.hud .daily-card.is-big { background: linear-gradient(rgba(255, 210, 60, 0.42), rgba(255, 130, 30, 0.3)); }
+.daily-card.is-big .daily-day { color: #ffd21a; }
+.daily-card.is-big .daily-art { width: 6.2em; height: 6.2em; margin-top: 0.1em; }
+
+/* the state along the bottom: Claim! / check / countdown / padlock */
+.daily-state { position: absolute; left: 0.45em; right: 0.45em; bottom: 0.5em; height: 2.3em; display: grid; place-items: center; box-sizing: border-box; border-radius: 0.4em; overflow: hidden; }
+.daily-state > * { grid-area: 1 / 1; display: none; }
+.daily-claim { font-size: 1.35em; -webkit-text-stroke-width: 0.18em; }
+.daily-check { width: 2.1em; height: 2.1em; }
+.daily-check svg, .daily-lock svg { width: 100%; height: 100%; }
+.daily-left { font-size: 1.05em; -webkit-text-stroke-width: 0.2em; font-variant-numeric: tabular-nums; color: #c8f0ff; }
+.daily-lock { width: 1.5em; height: 1.5em; }
+.is-ready .daily-claim, .is-claimed .daily-check, .is-next .daily-left, .is-locked .daily-lock { display: block; }
+.is-ready .daily-state { border: 0.14em solid #141414; background: linear-gradient(#5cff4a, #22d02a); box-shadow: inset 0 -0.25em 0 rgba(0, 0, 0, 0.18), inset 0 0.12em 0 rgba(255, 255, 255, 0.4); }
+.is-ready .daily-state::after { content: ''; position: absolute; top: 0; bottom: 0; width: 30%; left: -40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent); transform: skewX(-20deg); animation: coach-shine 2.4s ease-in-out infinite; }
+.is-next .daily-state, .is-locked .daily-state { background: rgba(0, 0, 0, 0.35); }
+
+/* ready: glowing gold and clickable; claimed and locked: dimmed */
+.hud .daily-card.is-ready { cursor: pointer; border-color: #ffd23a; box-shadow: 0 0 0.9em rgba(255, 210, 60, 0.65), inset 0 0 1.2em rgba(255, 210, 60, 0.25); animation: daily-glow 1.4s ease-in-out infinite; }
+.daily-card.is-ready .daily-art { animation: eggs-bob 2.4s ease-in-out infinite; }
+@keyframes daily-glow { 0%, 100% { box-shadow: 0 0 0.6em rgba(255, 210, 60, 0.5), inset 0 0 1em rgba(255, 210, 60, 0.2); } 50% { box-shadow: 0 0 1.4em rgba(255, 210, 60, 0.9), inset 0 0 1.6em rgba(255, 210, 60, 0.35); } }
+.daily-card.is-claimed > :not(.daily-state) { opacity: 0.4; }
+.hud .daily-card.is-claimed { border-color: #5cff4a; }
+.daily-card.is-locked .daily-art, .daily-card.is-next .daily-art { opacity: 0.7; }
+.hud .daily-card.is-pending { pointer-events: none; filter: brightness(0.85); } /* a claim out to the server */
+
+/* claimed just now (burst) / not yet (shake) */
+.hud .daily-card.is-got { animation: pets-up 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.daily-card.is-got::after { content: ''; position: absolute; inset: -0.15em; border-radius: inherit; pointer-events: none; animation: daily-flash 0.9s ease-out forwards; }
+@keyframes daily-flash { 0% { box-shadow: 0 0 0 0 rgba(255, 230, 90, 0.95), inset 0 0 2.5em rgba(255, 240, 160, 0.9); } 100% { box-shadow: 0 0 0 1.6em rgba(255, 230, 90, 0), inset 0 0 2.5em rgba(255, 240, 160, 0); } }
+.hud .daily-card.is-no { animation: pets-no 0.45s ease; }
+
+.daily-foot { position: absolute; left: 0; right: 0; bottom: 1em; text-align: center; font-size: 1.6em; -webkit-text-stroke-width: 0.16em; }
+.daily-foot.is-ready { color: #5cff4a; }
+
+.daily-toast { top: 39em; z-index: 7; } /* just under the panel, clear of the cards */
+.daily-fly { position: fixed; left: 0; top: 0; width: 2.6em; height: 2.6em; z-index: 8; pointer-events: none; filter: drop-shadow(0 0.15em 0.1em rgba(0, 0, 0, 0.4)); }
+.daily-fly svg { width: 100%; height: 100%; }
