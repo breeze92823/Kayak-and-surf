@@ -4,7 +4,7 @@
 // every pet has a coin multiplier (power(): its rarity's range spread over that rarity's list, times
 // the variant's) and bonus('coin') adds up the team's, waiting for coin earnings like the coaches'.
 // Adding a pet also discovers it in the Index. In memory until net.js saves progress (snapshot() /
-// hydrate() are the saved shape); the starting pets are placeholders.
+// hydrate() are the saved shape); a new player owns none (PET_TEAM.start is empty).
 import { PET_TEAM } from './config.js'
 import { petIndex } from './petIndex.js'
 

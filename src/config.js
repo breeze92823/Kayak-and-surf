@@ -366,8 +366,8 @@ export const LUNAR_EVENT = { start: '2026-10-24T00:00:00' }
 // coin multiplier: its rarity's `power` range, spread low -> high down that rarity's list in
 // petIndex.js, times its variant's `variantMult`; the team's multipliers add up (petInventory.js
 // bonus('coin'), waiting for coin earnings). The green + (one more team slot, up to `maxTeam`) is a
-// Robux buy: dev builds only until bloxity.js has a purchase call. `start` is the placeholder
-// inventory (also discovered in the Index).
+// Robux buy: dev builds only until bloxity.js has a purchase call. `start` is the inventory a new
+// player begins with (also discovered in the Index): none, pets come from eggs, the wheel and prizes.
 export const PET_TEAM = {
   team: 3,
   maxTeam: 6,
@@ -383,14 +383,7 @@ export const PET_TEAM = {
     exclusive: [150, 500],
   },
   variantMult: { normal: 1, big: 1.5, huge: 3, shiny: 2, rainbow: 2.5 },
-  start: [
-    { id: 'goat' },
-    { id: 'chick' },
-    { id: 'bear', variant: 'shiny' },
-    { id: 'frostdragon' },
-    { id: 'cosmic' },
-    { id: 'lunarlion' },
-  ],
+  start: [],
 }
 
 // --- Eggs and hatching (eggs.js, hatch.js, hud/eggs.js) ----------------------------------
@@ -437,8 +430,8 @@ export const PET_FOLLOW = {
 
 // --- Coaches (training.js, coach.js, hud/coach.js) ----------------------------------
 // Paddle up to the Coach on the deck and press E (or click the HUD's Coach tile) to open the
-// Coach window: the roster below (from the user's reference shots), each bought with coins; only
-// the first (free) is owned from the start, and none is equipped. A coach marked `locked` would be
+// Coach window: the roster below (from the user's reference shots), each bought with coins; none
+// is owned or equipped at the start (the Wooden Raft is the only free thing). A coach marked `locked` would be
 // always on, outside the slots (none is now). Any number can be bought, but only as many equipped at once as the
 // equipped boat's `coaches` (KAYAK_SHOP: none up to the Cross Canoe, 1 from the Cloud Kayak), and
 // every equipped coach adds its `effects` (% each): speed (blue-lane climb speed) and stamina (how high the climb goes
@@ -450,7 +443,7 @@ export const COACH_TRAINING = {
   promptRange: 7, // m from the Coach where the E prompt shows and E opens the window
   closeRange: 10, // m: paddling further away closes the window (unless it was opened from the tile)
   coaches: [
-    { id: 'duck', name: 'Coach Little Duck', effects: { speed: 5 }, price: 0, rarity: 'common' },
+    { id: 'duck', name: 'Coach Little Duck', effects: { speed: 5 }, price: 500, rarity: 'common' },
     { id: 'watermelon', name: 'Coach Watermelon', effects: { coin: 5 }, price: 1.2e3, rarity: 'common' },
     { id: 'energy', name: 'Energy Man', effects: { stamina: 10 }, price: 4e3, rarity: 'common' },
     { id: 'beard', name: 'Uncle Beard', effects: { coin: 10 }, price: 12e3, rarity: 'common' },

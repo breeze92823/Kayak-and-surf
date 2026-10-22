@@ -3,7 +3,7 @@
 // discovered in each variant (Normal / Big / Huge / Shiny / Rainbow). Completing a rarity's page in
 // a variant earns its `reward` (+% luck, waiting for the hatching gameplay to read bonus('luck')).
 // `look` is the hub/petFigure.js recipe for the portrait; `species` uses the hub/pets.js showcase
-// model instead. In memory until net.js saves progress; the two discovered pets are placeholders.
+// model instead. In memory until net.js saves progress; a new player has discovered nothing.
 
 export const VARIANTS = [
   { id: 'normal', name: 'Normal' },
@@ -131,7 +131,7 @@ export const PETS = [
   S('dragon', 'Celestial Dragon', 'exclusive', 'stone', 'lake', 'dragon'),
 ]
 
-const discovered = new Set(['normal:chick', 'normal:goat'])
+const discovered = new Set()
 const key = (variant, id) => `${variant}:${id}`
 const listeners = []
 
