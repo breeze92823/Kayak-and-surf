@@ -163,7 +163,9 @@ export function createTradeWindow({ hud, renderer }) {
       rows = roster()
       if (!rows.length) note = 'Nobody else is here yet.'
     }
-    const key = JSON.stringify([note, rows, sent?.to])
+    // Only what a row shows: roster patches arrive with every pose, and rebuilding the rows on each
+    // one replays their pop-in and swaps the play button out from under the click.
+    const key = JSON.stringify([note, rows.map((p) => [p.id, p.name, p.handle, p.signedIn, p.trading]), sent?.to])
     if (key === shownRows && !force) return
     shownRows = key
     noteEl.textContent = note
